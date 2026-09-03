@@ -40,3 +40,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# execution plans
+/execution_plans/
+
+# local/debug auth tooling (never commit again)
+/scripts/local-debug/
+/scripts/check*.js
+/scripts/test*.js
+/scripts/*Trigger*.js
+/scripts/inspect*.js
+/scripts/updateTrigger*.js
+/scripts/verifyTrigger.js
+/scripts/disableTrigger.js
+/scripts/enableTrigger.js
+

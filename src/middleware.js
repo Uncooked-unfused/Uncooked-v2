@@ -11,6 +11,26 @@ function isAdminPath(pathname) {
   return ADMIN_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
+function secretOk(secret) {
+  return (
+    typeof secret === "string" &&
+    secret.length >= 32 &&
+    !secret.toLowerCase().includes("dev_secret") &&
+    !secret.toLowerCase().includes("change-me") &&
+    !secret.toLowerCase().includes("fallback")
+  );
+}
+
+function serviceUnavailable(pathname) {
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json(
+      { success: false, error: { code: "SERVICE_UNAVAILABLE", message: "Authentication is not configured" } },
+      { status: 503 }
+    );
+  }
+  return new NextResponse("Service unavailable", { status: 503 });
+}
+
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -22,7 +42,11 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  const secret = process.env.NEXTAUTH_SECRET || "uncooked_production_fallback_secret_32_chars_min";
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secretOk(secret)) {
+    return serviceUnavailable(pathname);
+  }
+
   const ipKey = fingerprintIp(getClientIp(request), secret);
 
   if (pathname.startsWith("/api/auth") && request.method === "POST") {
@@ -36,72 +60,80 @@ export async function middleware(request) {
   }
 
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
+    request: { headers: request.headers },
+  });
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseKey || supabaseUrl.includes("placeholder")) {
+    if (isAdminPath(pathname) || AUTH_REQUIRED_PAGES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) {
+      return serviceUnavailable(pathname);
+    }
+    response.headers.set("x-request-id", crypto.randomUUID());
+    return response;
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        const nextResponse = NextResponse.next({ request });
+        response.headers.forEach((val, key) => nextResponse.headers.set(key, val));
+        response = nextResponse;
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+      },
     },
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          const nextResponse = NextResponse.next({
-            request,
-          });
-          // Preserve any existing response headers
-          response.headers.forEach((val, key) => nextResponse.headers.set(key, val));
-          response = nextResponse;
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
   let user = null;
-  let getUserError = null;
+  try {
+    const res = await supabase.auth.getUser();
+    user = res.data?.user || null;
+  } catch (err) {
+    console.warn(`[AUTH_MW] getUser error on ${pathname}`);
+  }
 
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")) {
-    try {
-      const res = await supabase.auth.getUser();
-      user = res.data?.user || null;
-      getUserError = res.error || null;
-    } catch (err) {
-      console.warn(`[AUTH_MW] getUser error on ${pathname}:`, err.message);
+  const status = String(user?.app_metadata?.account_status || "").toUpperCase();
+  const isBlocked = status === "LOCKED" || status === "DISABLED" || status === "DELETED";
+  if (user && isBlocked) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { success: false, error: { code: "ACCOUNT_BLOCKED", message: "Account has been suspended or disabled." } },
+        { status: 403 }
+      );
     }
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("error", "ACCOUNT_BLOCKED");
+    return NextResponse.redirect(url);
   }
 
-  if (getUserError) {
-    console.warn(`[AUTH_MW] getUser warning on ${pathname}:`, getUserError.message);
-  }
+  // Edge cannot use Prisma. app_metadata.role is a coarse gate only.
+  // Fine-grained authz still happens in Node via requireSuperAdmin() + DB role.
+  const edgeAdmin = user?.app_metadata?.role === "SUPER_ADMIN";
 
   if (isAdminPath(pathname)) {
-    const isSuperAdmin = user?.user_metadata?.role === "SUPER_ADMIN" || user?.email === "admin@uncooked.edu";
-    if (!user || !isSuperAdmin) {
+    if (!user) {
       if (pathname.startsWith("/api/")) {
         return NextResponse.json(
-          { success: false, error: { code: "FORBIDDEN", message: "Administrator access required." } },
-          { status: user ? 403 : 401 }
+          { success: false, error: { code: "UNAUTHENTICATED", message: "Please sign in to continue." } },
+          { status: 401 }
         );
       }
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirectTo", safeInternalPath(pathname, "/admin"));
-      const redirectResponse = NextResponse.redirect(url);
-      response.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
-      });
-      return redirectResponse;
+      return NextResponse.redirect(url);
+    }
+
+    // Admin pages require synced app_metadata.role. APIs fall through to DB checks.
+    if (!edgeAdmin && !pathname.startsWith("/api/")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
     }
   }
 
@@ -110,11 +142,7 @@ export async function middleware(request) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirectTo", safeInternalPath(pathname, "/dashboard"));
-      const redirectResponse = NextResponse.redirect(url);
-      response.cookies.getAll().forEach((cookie) => {
-        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
-      });
-      return redirectResponse;
+      return NextResponse.redirect(url);
     }
   }
 
@@ -128,14 +156,11 @@ export async function middleware(request) {
       );
     }
   }
-  
-  response.headers.set("x-request-id", crypto.randomUUID());
 
+  response.headers.set("x-request-id", crypto.randomUUID());
   return response;
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

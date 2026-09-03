@@ -3,6 +3,7 @@ import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
+import { syncAuthAppMetadata } from "@/lib/supabase/admin";
 
 export async function POST(req, { params }) {
   try {
@@ -32,6 +33,16 @@ export async function POST(req, { params }) {
         tokenVersion: lock ? { increment: 1 } : undefined,
       },
     });
+
+    if (updatedUser.authUserId) {
+      try {
+        await syncAuthAppMetadata(updatedUser.authUserId, {
+          accountStatus: lock ? "LOCKED" : "ACTIVE",
+        });
+      } catch (syncErr) {
+        console.error("[LOCK] Failed to sync app_metadata.account_status:", syncErr.message);
+      }
+    }
 
     await logAuditEvent({
       action: lock ? "ACCOUNT_LOCK" : "ACCOUNT_UNLOCK",
