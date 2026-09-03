@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { logAuditEvent } from "@/server/auth/audit";
+import { syncAuthAppMetadata } from "@/lib/supabase/admin";
 
 export async function eraseUser(userId, { ipHash = null, actorId = null } = {}) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -41,6 +42,14 @@ export async function eraseUser(userId, { ipHash = null, actorId = null } = {}) 
       },
     });
   });
+
+  if (user.authUserId) {
+    try {
+      await syncAuthAppMetadata(user.authUserId, { accountStatus: "DELETED" });
+    } catch (syncErr) {
+      console.error("[ERASURE] Failed to sync app_metadata.account_status:", syncErr.message);
+    }
+  }
 
   await logAuditEvent({
     actorId: actorId || userId,

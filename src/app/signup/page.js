@@ -35,9 +35,13 @@ export default function SignupPage() {
       setLoading(false);
       return;
     }
+    if (!formData.ageAttested18 || !formData.acceptTerms) {
+      setErrorMsg("You must confirm age (18+) and accept Terms and Privacy.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      // 1. Call server-side registration route for validation & DPDP consent persistence
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,20 +63,9 @@ export default function SignupPage() {
         return;
       }
 
-      // 2. Sign in with Supabase to establish client session
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signInError) {
-        setErrorMsg("Registration successful! Please sign in with your credentials.");
-        router.push("/login");
-        return;
-      }
-
-      // If successful, push to dashboard
-      router.push("/dashboard");
+      // Email must be verified before session — do not auto sign-in.
+      setErrorMsg("");
+      router.push("/login?registered=1");
       router.refresh();
     } catch (err) {
       console.error("Signup submission error:", err);

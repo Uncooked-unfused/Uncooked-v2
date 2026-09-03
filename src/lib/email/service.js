@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import nodemailer from "nodemailer";
+import { escapeHtml, safeHttpsUrl } from "@/server/security/html";
 
 const FROM_EMAIL = process.env.SMTP_FROM || process.env.EMAIL_FROM || "UNCOOKED <support@uncooked.in>";
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || "support@uncooked.in";
@@ -246,16 +247,20 @@ export async function sendPasswordResetEmail({ email, name, token, resetUrl }) {
 export async function sendSupportTicketNotification({ to, ticketId, subject, category, message, senderName, isReply }) {
   const title = isReply ? `Response on Support Ticket #${ticketId.slice(-6)}` : `Support Ticket Received #${ticketId.slice(-6)}`;
   const portalUrl = `${APP_URL}/admin/support`;
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+  const safeSubject = escapeHtml(subject);
+  const safeCategory = escapeHtml(category || "General");
+  const safeSender = escapeHtml(senderName || "Support Agent");
 
   const html = buildEmailTemplate({
     title,
     bodyHtml: `
-      <h1>${title} 🎫</h1>
-      <p><strong>Category:</strong> ${category || "General"}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
-      <p><strong>From:</strong> ${senderName || "Support Agent"}</p>
+      <h1>${escapeHtml(title)}</h1>
+      <p><strong>Category:</strong> ${safeCategory}</p>
+      <p><strong>Subject:</strong> ${safeSubject}</p>
+      <p><strong>From:</strong> ${safeSender}</p>
       <div style="background-color: #1a1a20; border-left: 4px solid #ff6b00; padding: 16px; border-radius: 8px; margin: 16px 0; color: #d4d4d8;">
-        ${message.replace(/\n/g, "<br/>")}
+        ${safeMessage}
       </div>
       <p>You can check ticket updates anytime on your support desk dashboard.</p>
     `,
@@ -276,19 +281,24 @@ export async function sendSupportTicketNotification({ to, ticketId, subject, cat
  * 4. Admin Broadcast & Direct Announcements
  */
 export async function sendAdminBroadcastEmail({ to, subject, message, mediaUrl, senderName }) {
-  const mediaHtml = mediaUrl ? `
+  const safeMedia = safeHttpsUrl(mediaUrl);
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+  const safeSender = escapeHtml(senderName || "Uncooked Admin");
+  const mediaHtml = safeMedia
+    ? `
     <div style="margin: 20px 0; text-align: center;">
-      <img src="${mediaUrl}" alt="Announcement Banner" style="max-width: 100%; max-height: 320px; border-radius: 12px; border: 1px solid #27272a; object-fit: cover;" />
+      <img src="${escapeHtml(safeMedia)}" alt="Announcement Banner" style="max-width: 100%; max-height: 320px; border-radius: 12px; border: 1px solid #27272a; object-fit: cover;" />
     </div>
-  ` : "";
+  `
+    : "";
 
   const html = buildEmailTemplate({
-    title: subject,
+    title: escapeHtml(subject),
     bodyHtml: `
-      <h1>📢 Announcement from ${senderName || "Uncooked Admin"}</h1>
+      <h1>Announcement from ${safeSender}</h1>
       ${mediaHtml}
       <div style="font-size: 15px; line-height: 1.7; color: #d4d4d8; margin: 20px 0;">
-        ${message.replace(/\n/g, "<br/>")}
+        ${safeMessage}
       </div>
     `,
     actionButton: `<a href="${APP_URL}/dashboard" class="btn">Open Portal</a>`,
@@ -306,19 +316,24 @@ export async function sendAdminBroadcastEmail({ to, subject, message, mediaUrl, 
  * 5. Contact Form Notifications & Auto-Replies
  */
 export async function sendContactNotification({ name, email, category, message }) {
-  // Send notification to Support Desk team
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeCategory = escapeHtml(category);
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+  const safeExcerpt = escapeHtml(String(message || "").slice(0, 150));
+
   const adminHtml = buildEmailTemplate({
-    title: `New Contact Form Inquiry: ${category}`,
+    title: `New Contact Form Inquiry: ${safeCategory}`,
     bodyHtml: `
-      <h1>New Support/Contact Inquiry 📬</h1>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Category:</strong> ${category}</p>
+      <h1>New Support/Contact Inquiry</h1>
+      <p><strong>Name:</strong> ${safeName}</p>
+      <p><strong>Email:</strong> ${safeEmail}</p>
+      <p><strong>Category:</strong> ${safeCategory}</p>
       <div style="background-color: #1a1a20; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 16px 0; color: #d4d4d8;">
-        ${message.replace(/\n/g, "<br/>")}
+        ${safeMessage}
       </div>
     `,
-    actionButton: `<a href="mailto:${email}?subject=Re:%20${encodeURIComponent(category)}%20Inquiry" class="btn">Reply to User</a>`,
+    actionButton: `<a href="mailto:${encodeURIComponent(String(email || ""))}?subject=Re:%20${encodeURIComponent(String(category || ""))}%20Inquiry" class="btn">Reply to User</a>`,
   });
 
   await sendEmail({
@@ -328,15 +343,14 @@ export async function sendContactNotification({ name, email, category, message }
     text: `From: ${name} (${email})\nCategory: ${category}\n\n${message}`,
   });
 
-  // Send Auto-Reply to user
   const userHtml = buildEmailTemplate({
     title: "We Received Your Message - Uncooked",
     bodyHtml: `
-      <h1>We've Got Your Message, ${name}! 👋</h1>
-      <p>Thank you for reaching out regarding <strong>${category}</strong>. Our team has received your message and will get back to you within 24 hours.</p>
+      <h1>We've Got Your Message, ${safeName}!</h1>
+      <p>Thank you for reaching out regarding <strong>${safeCategory}</strong>. Our team has received your message and will get back to you within 24 hours.</p>
       <div style="background-color: #18181b; padding: 14px; border-radius: 8px; font-size: 13px; color: #a1a1aa;">
         <strong>Your message excerpt:</strong><br/>
-        "${message.slice(0, 150)}${message.length > 150 ? "..." : ""}"
+        "${safeExcerpt}${String(message || "").length > 150 ? "..." : ""}"
       </div>
     `,
   });

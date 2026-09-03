@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/server/utils/passwordUtils";
-import { createClient } from "@supabase/supabase-js";
 import { enforceMutationGuards } from "@/server/http/guards";
+import { getSupabaseAdmin, syncAuthAppMetadata } from "@/lib/supabase/admin";
 
 export async function POST(req) {
   try {
@@ -13,10 +13,10 @@ export async function POST(req) {
     });
     if (blocked) return blocked;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey || supabaseUrl.includes("placeholder") || supabaseServiceKey.includes("placeholder")) {
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = getSupabaseAdmin();
+    } catch {
       console.error("[SECURITY] Missing or placeholder Supabase credentials for migration service");
       return NextResponse.json(
         { success: false, error: { code: "SERVICE_UNAVAILABLE", message: "Authentication migration service currently unavailable." } },
@@ -61,10 +61,9 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials provided." } }, { status: 401 });
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-
     // 4. Determine / Recover Supabase Identity Safely
     let authUserId = null;
+    const appRole = String(user.role || "USER").toUpperCase();
 
     // Check if identity already exists in auth.users
     const authRecords = await prisma.$queryRaw`SELECT id FROM auth.users WHERE LOWER(email) = ${cleanEmail} LIMIT 1`;
@@ -92,6 +91,10 @@ export async function POST(req) {
           name: user.name || user.fullName || "User",
           department: user.department,
         },
+        app_metadata: {
+          role: appRole,
+          account_status: "ACTIVE",
+        },
       });
 
       if (updateError) {
@@ -101,7 +104,7 @@ export async function POST(req) {
 
       authUserId = existingAuthId;
     } else {
-      // Create new Supabase identity
+      // Create new Supabase identity (legacy account already proved password ownership)
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         email: cleanEmail,
         password: password,
@@ -109,6 +112,10 @@ export async function POST(req) {
         user_metadata: {
           name: user.name || user.fullName || "User",
           department: user.department,
+        },
+        app_metadata: {
+          role: appRole,
+          account_status: "ACTIVE",
         },
       });
 
@@ -119,7 +126,7 @@ export async function POST(req) {
             authUserId = raceRecords[0].id;
           }
         }
-        
+
         if (!authUserId) {
           console.error("[Migrate] Failed to create Supabase Auth user:", createError.message);
           return NextResponse.json({ success: false, error: { code: "SUPABASE_CREATE_FAILED", message: "Failed to create user in Auth." } }, { status: 500 });
@@ -144,6 +151,12 @@ export async function POST(req) {
 
       if (updateResult.count === 0) {
         console.warn("[Migrate] Concurrent migration detected or authUserId already set for user ID:", user.id);
+      }
+
+      try {
+        await syncAuthAppMetadata(authUserId, { role: appRole, accountStatus: "ACTIVE" });
+      } catch (syncErr) {
+        console.error("[Migrate] Failed to sync app_metadata:", syncErr.message);
       }
     }
 

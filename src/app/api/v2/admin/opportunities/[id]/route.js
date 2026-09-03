@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
-import { requireSuperAdmin } from "@/server/http/guards";
+import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
 
@@ -34,6 +34,9 @@ export async function GET(req, { params }) {
 
 export async function PATCH(req, { params }) {
   try {
+    const blocked = await enforceMutationGuards(req, { rateKey: "rl_admin_opps", limit: 30, windowMs: 60_000 });
+    if (blocked) return blocked;
+
     const auth = await requireSuperAdmin();
     if (auth.error) return auth.error;
 
@@ -79,6 +82,9 @@ export async function PATCH(req, { params }) {
 
 export async function DELETE(req, { params }) {
   try {
+    const blocked = await enforceMutationGuards(req, { rateKey: "rl_admin_opps", limit: 30, windowMs: 60_000 });
+    if (blocked) return blocked;
+
     const auth = await requireSuperAdmin();
     if (auth.error) return auth.error;
 

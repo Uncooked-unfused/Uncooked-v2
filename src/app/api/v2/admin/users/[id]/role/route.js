@@ -4,6 +4,7 @@ import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
 import { ASSIGNABLE_ROLES } from "@/server/config/legal";
+import { syncAuthAppRole } from "@/lib/supabase/admin";
 
 export async function POST(req, { params }) {
   try {
@@ -41,6 +42,14 @@ export async function POST(req, { params }) {
         tokenVersion: { increment: 1 },
       },
     });
+
+    if (updatedUser.authUserId) {
+      try {
+        await syncAuthAppRole(updatedUser.authUserId, role);
+      } catch (syncErr) {
+        console.error("[ROLE] Failed to sync app_metadata.role:", syncErr.message);
+      }
+    }
 
     await logAuditEvent({
       action: "ROLE_CHANGE",

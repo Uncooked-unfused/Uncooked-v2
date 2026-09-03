@@ -52,13 +52,13 @@ test("Issue #22: Next.js image remotePatterns and CSP restrictions", () => {
   assert.ok(hostnames.includes("*.supabase.co"));
 });
 
-test("Issue #23: Registration password complexity validation", () => {
-  const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{12,}$/;
+test("Issue #23: Registration password complexity validation", async () => {
+  const { validatePasswordPolicy } = await import("../../src/server/utils/passwordUtils.js");
 
-  assert.equal(PASSWORD_REGEX.test("short1A"), false, "Rejects short password");
-  assert.equal(PASSWORD_REGEX.test("onlyletterslowercase"), false, "Rejects password without numbers");
-  assert.equal(PASSWORD_REGEX.test("123456789012345"), false, "Rejects password without letters");
-  assert.equal(PASSWORD_REGEX.test("ValidPassword123"), true, "Accepts strong compliant password");
+  assert.ok(validatePasswordPolicy("short1A"));
+  assert.ok(validatePasswordPolicy("onlyletterslowercase"));
+  assert.ok(validatePasswordPolicy("123456789012345"));
+  assert.equal(validatePasswordPolicy("ValidPassword123"), null);
 });
 
 test("Issue #28: Upstash Redis fallback telemetry", async () => {
@@ -88,19 +88,15 @@ test("Issue #29: Telemetry snapshot query bounds clamping", () => {
   assert.equal(clampLimit("25"), 25, "Preserves valid limit 25");
 });
 
-test("Issue #30: Contact form input XSS sanitization", () => {
-  function sanitizeText(str) {
-    return String(str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#x27;");
-  }
+test("Issue #25/#30: Email/HTML XSS escaping", async () => {
+  const { escapeHtml, safeHttpsUrl } = await import("../../src/server/security/html.js");
 
   const malScript = '<script>alert("xss")</script>';
-  const sanitized = sanitizeText(malScript);
+  const sanitized = escapeHtml(malScript);
 
-  assert.equal(sanitized, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+  assert.equal(sanitized, "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;");
   assert.equal(sanitized.includes("<script>"), false);
+  assert.equal(safeHttpsUrl("https://cdn.example.com/a.png"), "https://cdn.example.com/a.png");
+  assert.equal(safeHttpsUrl("javascript:alert(1)"), null);
+  assert.equal(safeHttpsUrl("http://insecure.example.com/x"), null);
 });

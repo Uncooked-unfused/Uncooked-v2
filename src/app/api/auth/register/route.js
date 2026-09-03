@@ -3,8 +3,8 @@ import prisma from "@/lib/prisma";
 import { createClient } from "@supabase/supabase-js";
 import { enforceMutationGuards } from "@/server/http/guards";
 import { getClientIp, fingerprintIp } from "@/server/http/clientIp";
-
-const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{12,}$/;
+import { validatePasswordPolicy } from "@/server/utils/passwordUtils";
+import { requireAuthSecret } from "@/server/security/secrets";
 
 export async function POST(req) {
   try {
@@ -14,6 +14,16 @@ export async function POST(req) {
       windowMs: 15 * 60 * 1000,
     });
     if (blocked) return blocked;
+
+    let authSecret;
+    try {
+      authSecret = requireAuthSecret();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: { code: "SERVICE_UNAVAILABLE", message: "Registration service unavailable." } },
+        { status: 503 }
+      );
+    }
 
     const body = await req.json();
     const { name, email, location, password, ageAttested18, acceptTerms } = body;
@@ -27,134 +37,149 @@ export async function POST(req) {
 
     if (!ageAttested18) {
       return NextResponse.json(
-        { success: false, error: { code: "AGE_RESTRICTION", message: "You must attest to being 18 years of age or older to register." } },
-        { status: 400 }
-      );
-    }
-
-    if (!acceptTerms) {
-      return NextResponse.json(
-        { success: false, error: { code: "CONSENT_REQUIRED", message: "You must accept the Terms of Service and Privacy Policy." } },
-        { status: 400 }
-      );
-    }
-
-    if (!PASSWORD_REGEX.test(password)) {
-      return NextResponse.json(
         {
           success: false,
           error: {
-            code: "WEAK_PASSWORD",
-            message: "Password must be at least 12 characters long and contain both letters and numbers.",
+            code: "AGE_RESTRICTION",
+            message: "You must attest to being 18 years of age or older to register.",
           },
         },
         { status: 400 }
       );
     }
 
+    if (!acceptTerms) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "CONSENT_REQUIRED",
+            message: "You must accept the Terms of Service and Privacy Policy.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    const passwordError = validatePasswordPolicy(password);
+    if (passwordError) {
+      return NextResponse.json(
+        { success: false, error: { code: "WEAK_PASSWORD", message: passwordError } },
+        { status: 400 }
+      );
+    }
+
     const cleanEmail = email.toLowerCase().trim();
-    const cleanName = name.trim();
+    const cleanName = String(name).trim();
+    if (!cleanName || cleanName.length > 120) {
+      return NextResponse.json(
+        { success: false, error: { code: "INVALID_NAME", message: "Please provide a valid name." } },
+        { status: 400 }
+      );
+    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (!supabaseUrl || !supabaseServiceKey || supabaseUrl.includes("placeholder")) {
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes("placeholder")) {
       return NextResponse.json(
         { success: false, error: { code: "SERVICE_UNAVAILABLE", message: "Registration service unavailable." } },
         { status: 503 }
       );
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // Public signup via anon client — email stays unconfirmed until the user verifies.
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
-    // Create user in Supabase Auth
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
-      email_confirm: true,
-      user_metadata: {
-        name: cleanName,
-        department: location ? location.trim() : null,
+      options: {
+        data: {
+          name: cleanName,
+          department: location ? String(location).trim() : null,
+          ageAttested18: true,
+          acceptTerms: true,
+        },
       },
     });
 
     if (authError) {
-      if (authError.message?.includes("already been registered")) {
-        // Return uniform response for anti-enumeration or generic error
-        return NextResponse.json(
-          { success: false, error: { code: "USER_EXISTS", message: "An account with this email address already exists." } },
-          { status: 400 }
-        );
-      }
-      console.error("[REGISTER] Supabase Auth creation failed:", authError.message);
+      console.error("[REGISTER] Supabase signUp failed");
+      // Anti-enumeration: same message for existing accounts when Supabase reveals them.
       return NextResponse.json(
-        { success: false, error: { code: "REGISTRATION_FAILED", message: authError.message } },
+        {
+          success: false,
+          error: {
+            code: "REGISTRATION_FAILED",
+            message: "Unable to complete registration. Try a different email or sign in.",
+          },
+        },
         { status: 400 }
       );
     }
 
-    const authUserId = authData.user.id;
+    const authUserId = authData?.user?.id || null;
     const clientIp = getClientIp(req);
-    const ipHash = fingerprintIp(clientIp, process.env.NEXTAUTH_SECRET || "consent_hash");
-
-    // Upsert Prisma User record and record DPDP consent
+    const ipHash = fingerprintIp(clientIp, authSecret);
     const now = new Date();
-    const dbUser = await prisma.user.upsert({
-      where: { email: cleanEmail },
-      create: {
-        id: authUserId,
-        authUserId: authUserId,
-        email: cleanEmail,
-        name: cleanName,
-        fullName: cleanName,
-        department: location ? location.trim() : null,
-        role: "USER",
-        ageAttested18: true,
-        termsAcceptedAt: now,
-        termsVersion: "2026-v1",
-        privacyAcceptedAt: now,
-        privacyVersion: "2026-v1",
-      },
-      update: {
-        authUserId: authUserId,
-        name: cleanName,
-        fullName: cleanName,
-        ageAttested18: true,
-        termsAcceptedAt: now,
-        termsVersion: "2026-v1",
-        privacyAcceptedAt: now,
-        privacyVersion: "2026-v1",
-      },
-    });
 
-    // Record DPDP explicit consent records
-    await prisma.consentRecord.createMany({
-      data: [
-        {
-          userId: dbUser.id,
-          kind: "TERMS_AND_PRIVACY",
-          version: "2026-v1",
-          acceptedAt: now,
-          ipHash,
+    // Trigger may also insert the User row; upsert keeps consent fields authoritative.
+    if (authUserId) {
+      const dbUser = await prisma.user.upsert({
+        where: { email: cleanEmail },
+        create: {
+          id: authUserId,
+          authUserId,
+          email: cleanEmail,
+          name: cleanName,
+          fullName: cleanName,
+          department: location ? String(location).trim() : null,
+          role: "USER",
+          ageAttested18: true,
+          termsAcceptedAt: now,
+          termsVersion: "2026-v1",
+          privacyAcceptedAt: now,
+          privacyVersion: "2026-v1",
         },
-        {
-          userId: dbUser.id,
-          kind: "AGE_ATTESTATION_18",
-          version: "2026-v1",
-          acceptedAt: now,
-          ipHash,
+        update: {
+          authUserId,
+          name: cleanName,
+          fullName: cleanName,
+          ageAttested18: true,
+          termsAcceptedAt: now,
+          termsVersion: "2026-v1",
+          privacyAcceptedAt: now,
+          privacyVersion: "2026-v1",
         },
-      ],
-    });
+      });
+
+      await prisma.consentRecord.createMany({
+        data: [
+          {
+            userId: dbUser.id,
+            kind: "TERMS_AND_PRIVACY",
+            version: "2026-v1",
+            acceptedAt: now,
+            ipHash,
+          },
+          {
+            userId: dbUser.id,
+            kind: "AGE_ATTESTATION_18",
+            version: "2026-v1",
+            acceptedAt: now,
+            ipHash,
+          },
+        ],
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Account registered successfully.",
-      user: {
-        id: dbUser.id,
-        email: dbUser.email,
-        name: dbUser.name,
-      },
+      requiresEmailConfirmation: true,
+      message: "Account created. Please verify your email before signing in.",
     });
   } catch (error) {
     console.error("[REGISTER] Unhandled server error:", error);
