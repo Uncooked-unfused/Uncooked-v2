@@ -90,7 +90,7 @@ export default function Footer() {
                 className="text-xl font-bold tracking-tight"
                 style={{ color: "var(--text-primary)" }}
               >
-                uncooked
+                OPPORTIA
               </span>
             </Link>
             {footerLinks.product.map((link) => (
@@ -157,7 +157,7 @@ export default function Footer() {
             ))}
           </div>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            © {currentYear} Uncooked Portal. All rights reserved.
+            © {currentYear} Opportia Portal. All rights reserved.
           </p>
         </div>
       </div>
@@ -179,7 +179,7 @@ export default function Footer() {
             transform: "translateY(20%)" // push it down slightly to cut it off at the bottom
           }}
         >
-          UNCOOKED
+          OPPORTIA
         </span>
         {/* Glowing orange text on scroll */}
         <span 
@@ -193,7 +193,7 @@ export default function Footer() {
             opacity: isIntersecting ? 0.25 : 0
           }}
         >
-          UNCOOKED
+          OPPORTIA
         </span>
       </div>
     </footer>

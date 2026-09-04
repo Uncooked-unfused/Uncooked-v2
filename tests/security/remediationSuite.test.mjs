@@ -235,10 +235,10 @@ test("Issue #32: Edge LOCKED claim respects locked_until expiry", () => {
 test("Issue #38: getAppBaseUrl never trusts request Host", async () => {
   const prevApp = process.env.NEXT_PUBLIC_APP_URL;
   const prevAuth = process.env.NEXTAUTH_URL;
-  process.env.NEXT_PUBLIC_APP_URL = "https://app.uncooked.example";
+  process.env.NEXT_PUBLIC_APP_URL = "https://app.opportia.example";
   process.env.NEXTAUTH_URL = "https://ignored.example";
   const { getAppBaseUrl } = await import("../../src/lib/appUrl.js");
-  assert.equal(getAppBaseUrl(), "https://app.uncooked.example");
+  assert.equal(getAppBaseUrl(), "https://app.opportia.example");
   process.env.NEXT_PUBLIC_APP_URL = prevApp;
   process.env.NEXTAUTH_URL = prevAuth;
 });

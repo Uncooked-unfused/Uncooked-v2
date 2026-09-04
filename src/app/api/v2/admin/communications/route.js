@@ -73,7 +73,7 @@ export async function POST(req) {
           subject,
           message,
           mediaUrl,
-          senderName: user.fullName || "Uncooked Admin Desk",
+          senderName: user.fullName || "Opportia Admin Desk",
         });
         successCount++;
       } catch (err) {

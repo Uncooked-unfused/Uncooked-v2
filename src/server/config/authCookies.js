@@ -1,7 +1,7 @@
 export function sessionCookieName() {
   return process.env.NODE_ENV === "production"
-    ? "__Secure-uncooked.session-token"
-    : "uncooked.session-token";
+    ? "__Secure-opportia.session-token"
+    : "opportia.session-token";
 }
 
 export function sessionCookieOptions() {

@@ -131,7 +131,7 @@ export default function ContactPage() {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-sm text-text-secondary max-w-md">
-                    Thank you for contacting Uncooked. We stored your message and will reply to <span className="text-text-primary font-medium">{formData.email}</span>. We do not guarantee a two-hour SLA.
+                    Thank you for contacting OPPORTIA. We stored your message and will reply to <span className="text-text-primary font-medium">{formData.email}</span>. We do not guarantee a two-hour SLA.
                   </p>
                   <button
                     onClick={() => {

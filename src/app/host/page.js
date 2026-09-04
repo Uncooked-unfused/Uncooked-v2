@@ -218,10 +218,10 @@ export default function HostPage() {
                 {/* Shareable Event Box */}
                 <div className="w-full bg-background border border-border-subtle rounded-2xl p-4 flex items-center justify-between gap-3">
                   <span className="text-xs font-mono text-text-secondary truncate">
-                    https://uncooked.portal/e/{eventData.title.toLowerCase().replace(/\s+/g, '-')}
+                    https://opportia.app/e/{eventData.title.toLowerCase().replace(/\s+/g, '-')}
                   </span>
                   <button
-                    onClick={() => navigator.clipboard.writeText(`https://uncooked.portal/e/${eventData.title}`)}
+                    onClick={() => navigator.clipboard.writeText(`https://opportia.app/e/${eventData.title}`)}
                     className="px-3 py-1.5 rounded-lg bg-[var(--accent-orange)] text-white text-xs font-bold shrink-0 hover:opacity-90 transition-opacity"
                   >
                     Copy Link
@@ -623,7 +623,7 @@ export default function HostPage() {
           <div className="mb-24">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--accent-orange)] mb-3">
-                WHY HOST ON UNCOOKED
+                WHY HOST ON OPPORTIA
               </h2>
               <h3 className="text-2xl sm:text-3xl font-bold text-text-primary">
                 Built specifically for campus logistics

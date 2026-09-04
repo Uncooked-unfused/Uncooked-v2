@@ -98,7 +98,7 @@ export default function AdminOpportunitiesPage() {
   const handleOpenCreate = () => {
     setFormData({
       title: "",
-      company: "Uncooked Labs",
+      company: "OPPORTIA Labs",
       type: "INTERNSHIP",
       location: "Remote / Lucknow",
       stipend: "₹15,000 / month",
@@ -458,7 +458,7 @@ export default function AdminOpportunitiesPage() {
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                     className="w-full bg-[#181824] border border-[#2a2a3c] rounded-xl px-3 py-2 text-white outline-none focus:border-purple-500"
-                    placeholder="e.g. Uncooked Studio / Tech Corp"
+                    placeholder="e.g. OPPORTIA Studio / Tech Corp"
                   />
                 </div>
               </div>

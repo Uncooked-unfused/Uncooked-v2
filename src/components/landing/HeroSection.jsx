@@ -317,7 +317,7 @@ export default function HeroSection() {
             className="text-xs sm:text-sm font-medium tracking-wider uppercase"
             style={{ color: "#737373" }}
           >
-            uncooked
+            OPPORTIA
             <sup
               className="text-[8px] ml-0.5"
               style={{ color: "var(--accent-orange)" }}
@@ -352,7 +352,7 @@ export default function HeroSection() {
           className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg max-w-sm sm:max-w-lg mx-auto leading-relaxed px-2"
           style={{ color: "#a3a3a3" }}
         >
-          From run clubs to launch parties and firework shows, Uncooked makes
+          From run clubs to launch parties and firework shows, Opportia makes
           every event feel effortless.
         </motion.p>
 

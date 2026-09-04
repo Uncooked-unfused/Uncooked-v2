@@ -124,7 +124,7 @@ export default function CreateEventPage() {
           date: startDate.toISOString(),
           endDate: endDate && !Number.isNaN(endDate.getTime()) ? endDate.toISOString() : null,
           location: form.location.trim(),
-          description: form.description.trim() || `${form.title.trim()} (hosted on Uncooked).`,
+          description: form.description.trim() || `${form.title.trim()} (hosted on Opportia).`,
           ticketType: form.ticketType,
           price: form.ticketType === "Paid" ? form.price : 0,
           capacity: form.capacity,
@@ -174,7 +174,7 @@ export default function CreateEventPage() {
               Create your first event
             </h1>
             <p className="text-sm text-text-secondary mt-2 max-w-2xl">
-              Same path as campus ops on Uncooked: verified host → publish → signed passes. No fake
+              Same path as campus ops on Opportia: verified host → publish → signed passes. No fake
               telemetry. Required fields match what the API actually stores.
             </p>
           </div>
@@ -194,7 +194,7 @@ export default function CreateEventPage() {
                 <div>
                   <h2 className="text-lg font-bold text-text-primary">Verified host required</h2>
                   <p className="text-sm text-text-secondary mt-1 leading-relaxed">
-                    Unlike open social RSVP tools, Uncooked only lets verified organisers publish.
+                    Unlike open social RSVP tools, OPPORTIA only lets verified organisers publish.
                     Apply once. After admin approval your role becomes ORGANIZER and this form
                     unlocks.
                   </p>

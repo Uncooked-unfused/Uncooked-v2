@@ -1,6 +1,6 @@
-# 🗺️ Uncooked Portal — Prioritized Implementation Plan
+# 🗺️ Opportia Portal — Prioritized Implementation Plan
 
-This document outlines the step-by-step development plan for completing the backend infrastructure and full-stack features of the **Uncooked Portal**, categorized by priority and execution phase.
+This document outlines the step-by-step development plan for completing the backend infrastructure and full-stack features of the **Opportia Portal**, categorized by priority and execution phase.
 
 ---
 
