@@ -43,6 +43,9 @@ model User {
   disabledReason       String?
   deletedAt            DateTime?
   deleteRequestedAt    DateTime?
+  /** Erasure saga: Auth user id still pending remote delete after local anonymize. */
+  pendingAuthDeleteId  String?
+  authErasureStatus    String?   // null | PENDING | DONE | FAILED
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -317,4 +320,27 @@ model AuditLog {
 
   @@index([createdAt])
   @@index([actorId])
+}
+
+/** Async admin email broadcast jobs (#51). */
+model BroadcastJob {
+  id              String    @id @default(cuid())
+  idempotencyKey  String    @unique
+  adminId         String
+  audience        String
+  subject         String
+  message         String
+  mediaUrl        String?
+  status          String    @default("PENDING") // PENDING | RUNNING | DONE | FAILED
+  totalRecipients Int       @default(0)
+  successCount    Int       @default(0)
+  failureCount    Int       @default(0)
+  details         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  @@index([status, createdAt])
+  @@index([adminId, createdAt])
 }
