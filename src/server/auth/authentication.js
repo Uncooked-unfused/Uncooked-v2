@@ -81,8 +81,18 @@ export async function getAuthUserAndProfile() {
         return { authUser, user: null, state: "ACCOUNT_BLOCKED" };
       }
 
+      // Session revoke: Prisma tokenVersion is incremented on lock/role/erase without
+      // updating Auth app_metadata.token_version. Mismatch => force re-auth.
+      const claimTv = Number(authUser.app_metadata?.token_version);
+      const dbTv = Number(user.tokenVersion || 0);
+      if (Number.isFinite(claimTv) && claimTv !== dbTv) {
+        console.warn(`[AUTH_RESOLVE] SESSION_REVOKED userId=${user.id} claimTv=${claimTv} dbTv=${dbTv}`);
+        return { authUser, user: null, state: "ACCOUNT_BLOCKED" };
+      }
+
       // Lazy claim heal: keep app_metadata.role aligned with DB (fixes SUPER_ADMIN /admin gate).
       // Also clear expired LOCKED claims so Edge cannot permanently lock out users.
+      // Never auto-write token_version here — that would undo revoke.
       if (user.authUserId) {
         const dbRole = String(user.role || "USER").toUpperCase();
         const claimRole = String(authUser.app_metadata?.role || "").toUpperCase();
@@ -121,7 +131,11 @@ export async function getAuthUserAndProfile() {
       authUser.email && (authUser.email_confirmed_at || authUser.confirmed_at || authUser.user_metadata?.email_verified)
     );
 
-    if (isEmailVerified && authUser.email) {
+    // Never auto-link OAuth identities to legacy Prisma rows (account takeover risk).
+    const identities = authUser.identities || [];
+    const hasOAuthIdentity = identities.some((i) => i?.provider && i.provider !== "email");
+
+    if (isEmailVerified && authUser.email && !hasOAuthIdentity) {
       const normalizedEmail = authUser.email.toLowerCase().trim();
       const matchingUsers = await prisma.user.findMany({
         where: { email: normalizedEmail },

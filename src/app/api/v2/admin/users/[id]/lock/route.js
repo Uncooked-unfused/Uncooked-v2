@@ -3,7 +3,7 @@ import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
-import { syncAuthAppMetadata } from "@/lib/supabase/admin";
+import { revokeAuthSessions, syncAuthAppMetadata } from "@/lib/supabase/admin";
 
 export async function POST(req, { params }) {
   try {
@@ -49,6 +49,17 @@ export async function POST(req, { params }) {
         tokenVersion: lock ? { increment: 1 } : undefined,
       },
     });
+
+    if (updatedUser.authUserId) {
+      try {
+        // Ban while locked; clear ban on unlock. tokenVersion mismatch kills app sessions.
+        await revokeAuthSessions(updatedUser.authUserId, {
+          banDuration: lock ? `${Math.max(1, hours)}h` : "none",
+        });
+      } catch (revokeErr) {
+        console.error("[LOCK] Failed to update auth ban state:", revokeErr.message);
+      }
+    }
 
     await logAuditEvent({
       action: lock ? "ACCOUNT_LOCK" : "ACCOUNT_UNLOCK",

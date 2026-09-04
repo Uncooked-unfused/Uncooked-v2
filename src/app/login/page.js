@@ -32,67 +32,28 @@ function LoginForm() {
     setLoading(true);
     setErrorMsg("");
 
-    console.log("[AUTH_LOGIN] Login started");
-    console.log("[AUTH_LOGIN] Email:", formData.email);
-
     try {
-      const loginRes = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
+      // Server-side login: CSRF, rate limit, lockout, uniform errors, session cookies.
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       });
-      let error = loginRes.error;
+      const data = await res.json().catch(() => ({}));
 
-      console.log("[AUTH_LOGIN] Success:", !loginRes.error);
-      console.log("[AUTH_LOGIN] User ID:", loginRes.data?.user?.id || null);
-      console.log("[AUTH_LOGIN] Session exists:", !!loginRes.data?.session);
-      console.log("[AUTH_LOGIN] Error code:", loginRes.error?.status || loginRes.error?.code || null);
-      console.log("[AUTH_LOGIN] Error message:", loginRes.error?.message || null);
-
-      // If standard login fails, try the JIT migration fallback
-      if (error && error.message.toLowerCase().includes("invalid login credentials")) {
-        try {
-          const migrateRes = await fetch("/api/auth/migrate-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: formData.email, password: formData.password }),
-          });
-          
-          if (migrateRes.ok) {
-            // Migration successful! Their password is now updated in Supabase. Let's retry the login.
-            const retryLogin = await supabase.auth.signInWithPassword({
-              email: formData.email,
-              password: formData.password,
-            });
-            error = retryLogin.error;
-          }
-        } catch (migrateErr) {
-          console.error("Migration fallback failed:", migrateErr);
-        }
-      }
-
-      if (error) {
-        try {
-          const checkRes = await fetch("/api/auth/check-user", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: formData.email }),
-          });
-          const checkData = await checkRes.json();
-          if (checkData.success && checkData.exists === false) {
-            setErrorMsg("No account found with this email address. Please check your typing or register a new account.");
-          } else {
-            setErrorMsg("Incorrect password. Please verify your password or click 'Forgot password?' to reset.");
-          }
-        } catch {
-          setErrorMsg("Invalid email or password. Please try again.");
+      if (!res.ok || data.success === false) {
+        if (res.status === 429) {
+          setErrorMsg("Too many sign-in attempts. Please wait and try again.");
+        } else {
+          setErrorMsg(data.error?.message || "Invalid email or password. Please try again.");
         }
         setLoading(false);
-      } else {
-        router.push(redirectTo);
-        router.refresh();
+        return;
       }
+
+      router.push(redirectTo);
+      router.refresh();
     } catch (err) {
-      console.error("Login error:", err);
       setErrorMsg("Failed to log in. Please try again.");
       setLoading(false);
     }

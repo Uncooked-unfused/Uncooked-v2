@@ -243,6 +243,23 @@ test("Issue #38: getAppBaseUrl never trusts request Host", async () => {
   process.env.NEXTAUTH_URL = prevAuth;
 });
 
+test("OWASP: check-user must not return exists boolean", async () => {
+  const src = await import("node:fs").then((fs) =>
+    fs.readFileSync(new URL("../../src/app/api/auth/check-user/route.js", import.meta.url), "utf8")
+  );
+  assert.equal(/exists:\s*!!/.test(src), false);
+  assert.equal(/exists:\s*Boolean/.test(src), false);
+  assert.ok(src.includes("enforceMutationGuards"));
+});
+
+test("OWASP: CSP must not allow unsafe-eval", async () => {
+  const nextConfig = (await import("../../next.config.mjs")).default;
+  const headers = await nextConfig.headers();
+  const csp = headers[0].headers.find((h) => h.key === "Content-Security-Policy")?.value || "";
+  assert.equal(csp.includes("unsafe-eval"), false);
+  assert.ok(csp.includes("script-src"));
+});
+
 test("Issue #34: production email path must not report mock success", async () => {
   const prev = process.env.NODE_ENV;
   const prevResend = process.env.RESEND_API_KEY;

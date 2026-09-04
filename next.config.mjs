@@ -14,7 +14,9 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      // Next.js still needs 'unsafe-inline' for some runtime bootstrapping.
+      // 'unsafe-eval' removed to reduce XSS blast radius.
+      "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://*.supabase.co",
       "font-src 'self' data:",
@@ -23,6 +25,7 @@ const securityHeaders = [
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
+      "upgrade-insecure-requests",
     ].join("; "),
   },
 ];
