@@ -26,11 +26,12 @@ This file is the **map of how Uncooked is secured end-to-end**: pages, buttons/a
 | Session forgery | Strong `NEXTAUTH_SECRET` (no weak/placeholder secrets) |
 | CSRF / cross-site writes | Origin allowlist + `SameSite=Lax` cookies + mutation guards |
 | IDOR / privilege escalation | DB-backed `getCurrentUser()`, role checks, no client-trusted `userId`/`role` |
-| Brute force / spam | Per-route + middleware rate limits |
+| Brute force / spam | Edge WAF/bot protection + per-route + middleware rate limits |
 | Ticket forgery | HMAC-SHA256 with dedicated `TICKET_HMAC_SECRET` |
 | XSS / clickjacking | React escaping, CSP, `X-Frame-Options: DENY` |
 | Data abuse (DPDP) | Export/erase scoped to session user; audit logs |
 | Platform emergency | Kill switch pauses writes |
+| Volumetric bots / scanners | Cloudflare (or equivalent) WAF in front of Vercel |
 
 ---
 
@@ -66,7 +67,37 @@ Applied to all routes via `next.config.mjs`:
 | `Content-Security-Policy` | `default-src 'self'`; images limited to self + Unsplash + ui-avatars; `frame-ancestors 'none'`; `object-src 'none'` |
 | `X-Powered-By` | Disabled (`poweredByHeader: false`) |
 
-**Note:** CSP still allows `'unsafe-inline'` / `'unsafe-eval'` for Next.js. Tighten with nonces when the stack allows — tracked as a follow-up.
+**Note:** CSP allows `'unsafe-inline'` for Next.js bootstrap. `'unsafe-eval'` is disabled. Tighten further with nonces when the stack allows.
+
+---
+
+## 3b. Edge WAF + bot protection (production)
+
+**Decision:** Put **Cloudflare** in front of the Vercel deployment (recommended default). App hardening is necessary but not sufficient against distributed bots and floods.
+
+### Required production setup
+
+1. **Cloudflare** zone for the public hostname (e.g. `app.uncooked.dev` / production domain).
+2. DNS: orange-cloud (proxied) `CNAME`/`A` to Vercel.
+3. SSL/TLS mode: **Full (strict)** with a valid cert on Vercel.
+4. **WAF:** enable Cloudflare Managed Ruleset + OWASP Core Ruleset (block or managed challenge on high confidence).
+5. **Bot Fight Mode** (or Super Bot Fight on paid plans): challenge likely-automated traffic.
+6. **Rate limiting rules** (minimum):
+   - `POST /api/auth/*` — tight (e.g. 20–40 / 1 min / IP)
+   - `POST /api/auth/login` — tighter (e.g. 10 / 1 min / IP)
+   - `POST /api/auth/forgot-password` — tight (e.g. 5 / 1 min / IP)
+7. **Security Level:** Medium (or High under attack).
+8. **Always Use HTTPS** + HSTS (Cloudflare can complement app HSTS).
+
+### Vercel side
+
+- Keep deployment as-is; do **not** expose origin bypass URLs publicly.
+- Optionally restrict who can hit the Vercel URL directly (Cloudflare Authenticated Origin Pulls / firewall on Vercel Enterprise, or keep the `*.vercel.app` URL unlisted).
+- Ensure `NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` match the **public Cloudflare hostname** (not the raw Vercel URL).
+
+### What WAF does *not* replace
+
+- CSRF Origin checks, DB RBAC, lockout, Upstash rate limits, and secret hygiene remain mandatory in app code.
 
 ---
 
