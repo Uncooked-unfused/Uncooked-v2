@@ -218,6 +218,7 @@ export async function POST(req) {
           passwordHash: null, // Clear legacy password hash upon migration/reset
           failedLoginAttempts: 0,
           lockedUntil: null,
+          tokenVersion: { increment: 1 },
         },
       });
     } catch (prismaErr) {
@@ -243,7 +244,8 @@ export async function POST(req) {
       }
     }
 
-    // Step 6: Clear Edge LOCKED claim so temp locks cannot become permanent after reset.
+    // Step 6: Clear Edge LOCKED claim; revoke other sessions; next login stamps new token_version.
+    // tokenVersion was incremented above — existing sessions fail claim check until re-login.
     try {
       await syncAuthAppMetadata(targetAuthUserId, {
         accountStatus: "ACTIVE",

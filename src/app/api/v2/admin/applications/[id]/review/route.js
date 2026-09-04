@@ -67,8 +67,9 @@ export async function POST(req, { params }) {
       if (promoted?.authUserId) {
         try {
           await syncAuthAppRole(promoted.authUserId, "ORGANIZER");
+          // tokenVersion was incremented with the role change — existing sessions re-auth.
         } catch (syncErr) {
-          console.error("[KYC] Failed to sync app_metadata.role after approve:", syncErr.message);
+          console.error("[KYC] Failed to sync/revoke after approve:", syncErr.message);
           return jsonError(
             "Host approved in database but role claim sync failed. Retry sync or contact engineering.",
             503,

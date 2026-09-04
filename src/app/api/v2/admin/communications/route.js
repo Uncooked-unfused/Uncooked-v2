@@ -102,6 +102,6 @@ export async function POST(req) {
     });
   } catch (error) {
     console.error("[Communications API] Error sending broadcast:", error);
-    return NextResponse.json({ error: error.message || "Failed to dispatch broadcast" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to dispatch broadcast" }, { status: 500 });
   }
 }

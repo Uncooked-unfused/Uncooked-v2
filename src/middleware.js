@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { getClientIp, fingerprintIp } from "@/server/http/clientIp";
-import { rateLimit, rateLimitHeaders } from "@/server/http/rateLimit";
+import { rateLimitAsync, rateLimitHeaders } from "@/server/http/rateLimit";
 import { safeInternalPath } from "@/lib/safeRedirect";
 
 const ADMIN_PREFIXES = ["/admin", "/api/v2/admin"];
@@ -50,7 +50,8 @@ export async function middleware(request) {
   const ipKey = fingerprintIp(getClientIp(request), secret);
 
   if (pathname.startsWith("/api/auth") && request.method === "POST") {
-    const rl = rateLimit(`mw_auth:${ipKey}`, 20, 15 * 60 * 1000);
+    // Prefer shared Redis when configured (multi-instance). Falls back to memory.
+    const rl = await rateLimitAsync(`mw_auth:${ipKey}`, 20, 15 * 60 * 1000);
     if (!rl.ok) {
       return NextResponse.json(
         { success: false, error: { code: "RATE_LIMITED", message: "Too many requests. Please try again later." } },

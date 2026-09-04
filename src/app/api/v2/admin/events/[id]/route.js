@@ -3,6 +3,7 @@ import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
+import { safeHttpsUrl } from "@/server/security/html";
 
 export async function GET(req, { params }) {
   try {
@@ -61,7 +62,9 @@ export async function PATCH(req, { params }) {
     if (body.capacity !== undefined) updateData.capacity = parseInt(body.capacity, 10);
     if (body.ticketType !== undefined) updateData.ticketType = body.ticketType;
     if (body.price !== undefined) updateData.price = parseFloat(body.price);
-    if (body.bannerUrl !== undefined) updateData.bannerUrl = body.bannerUrl;
+    if (body.bannerUrl !== undefined) {
+      updateData.bannerUrl = body.bannerUrl ? safeHttpsUrl(body.bannerUrl) : null;
+    }
     if (body.prizePool !== undefined) updateData.prizePool = body.prizePool;
     if (body.status !== undefined) updateData.status = body.status;
     if (body.archived !== undefined) updateData.archived = Boolean(body.archived);

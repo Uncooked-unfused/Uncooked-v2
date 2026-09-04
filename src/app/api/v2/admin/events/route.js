@@ -3,6 +3,7 @@ import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
+import { safeHttpsUrl } from "@/server/security/html";
 
 export async function GET(req) {
   try {
@@ -85,7 +86,7 @@ export async function POST(req) {
         capacity: parseInt(body.capacity || "100", 10),
         ticketType: body.ticketType || "Free",
         price: body.price ? parseFloat(body.price) : 0,
-        bannerUrl: body.bannerUrl || null,
+        bannerUrl: body.bannerUrl ? safeHttpsUrl(body.bannerUrl) : null,
         prizePool: body.prizePool || null,
         status: body.status || "Active",
         archived: Boolean(body.archived),

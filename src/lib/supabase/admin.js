@@ -16,13 +16,17 @@ export function getSupabaseAdmin() {
  * Never put privileged claims in user_metadata — clients can spoof that.
  *
  * @param {string} authUserId
- * @param {{ role?: string, accountStatus?: string, lockedUntil?: Date|string|null }} [claims]
+ * @param {{ role?: string, accountStatus?: string, lockedUntil?: Date|string|null, tokenVersion?: number }} [claims]
  */
-export async function syncAuthAppMetadata(authUserId, { role, accountStatus, lockedUntil } = {}) {
+export async function syncAuthAppMetadata(
+  authUserId,
+  { role, accountStatus, lockedUntil, tokenVersion } = {}
+) {
   if (!authUserId) return;
   const patch = {};
   if (role != null) patch.role = String(role || "USER").toUpperCase();
   if (accountStatus != null) patch.account_status = String(accountStatus).toUpperCase();
+  if (tokenVersion != null) patch.token_version = Number(tokenVersion) || 0;
   if (lockedUntil !== undefined) {
     if (lockedUntil == null || lockedUntil === "") {
       patch.locked_until = null;
@@ -47,4 +51,22 @@ export async function syncAuthAppMetadata(authUserId, { role, accountStatus, loc
 
 export async function syncAuthAppRole(authUserId, role) {
   return syncAuthAppMetadata(authUserId, { role });
+}
+
+/**
+ * Defense-in-depth session invalidation.
+ * Admin signOut() requires a user JWT (not available on admin actions), so we:
+ * 1) Rely on Prisma tokenVersion mismatch (checked in getAuthUserAndProfile)
+ * 2) Optionally ban/unban the Auth user (locks password sign-in at GoTrue)
+ */
+export async function revokeAuthSessions(authUserId, { banDuration = null } = {}) {
+  if (!authUserId) return;
+  if (banDuration == null) return;
+  const admin = getSupabaseAdmin();
+  const { error } = await admin.auth.admin.updateUserById(authUserId, {
+    ban_duration: banDuration,
+  });
+  if (error) {
+    throw new Error(`Failed to update auth ban state: ${error.message}`);
+  }
 }

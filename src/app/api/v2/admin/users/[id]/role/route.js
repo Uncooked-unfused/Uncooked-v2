@@ -45,9 +45,11 @@ export async function POST(req, { params }) {
 
     if (updatedUser.authUserId) {
       try {
+        // Do not write token_version into app_metadata — DB increment leaves
+        // existing JWTs with stale token_version and forces re-auth.
         await syncAuthAppRole(updatedUser.authUserId, role);
       } catch (syncErr) {
-        console.error("[ROLE] Failed to sync app_metadata.role:", syncErr.message);
+        console.error("[ROLE] Failed to sync/revoke after role change:", syncErr.message);
       }
     }
 
