@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { jsonError, jsonOk, readJson } from "@/server/http/envelope";
 import { enforceMutationGuards } from "@/server/http/guards";
 import { validatePasswordPolicy } from "@/server/utils/passwordUtils";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin, syncAuthAppMetadata } from "@/lib/supabase/admin";
 
 export async function POST(req) {
   try {
@@ -67,10 +67,10 @@ export async function POST(req) {
     const wasAlreadyLinked = Boolean(user.authUserId);
 
     // Step 3: Resolve Canonical Supabase Auth Identity
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey || supabaseUrl.includes("placeholder") || supabaseServiceKey.includes("placeholder")) {
+    let supabaseAdmin;
+    try {
+      supabaseAdmin = getSupabaseAdmin();
+    } catch {
       console.error("[PASSWORD_RESET_FAILED]", {
         reason: "SERVICE_UNAVAILABLE",
         message: "Missing or placeholder Supabase credentials",
@@ -79,7 +79,6 @@ export async function POST(req) {
       return jsonError("Password reset service is currently unavailable.", 503);
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
     let targetAuthUserId = null;
 
     if (user.authUserId) {
@@ -231,10 +230,6 @@ export async function POST(req) {
           timestamp: new Date().toISOString(),
         });
         // Existing identity mapping intact; Supabase authentication functional
-        return jsonOk({
-          success: true,
-          message: "Your password has been reset successfully. You can now log in.",
-        });
       } else {
         console.error("[PASSWORD_RESET_FAILED]", {
           reason: "AUTH_UPDATED_IDENTITY_LINK_FAILED",
@@ -246,6 +241,24 @@ export async function POST(req) {
         // Unlinked legacy account: Supabase updated, but local identity link failed
         return jsonError("Your password may have been updated, but we couldn't complete account recovery. Please try signing in with your new password. If access is not restored, contact support.", 500);
       }
+    }
+
+    // Step 6: Clear Edge LOCKED claim so temp locks cannot become permanent after reset.
+    try {
+      await syncAuthAppMetadata(targetAuthUserId, {
+        accountStatus: "ACTIVE",
+        lockedUntil: null,
+        role: String(user.role || "USER").toUpperCase(),
+      });
+    } catch (syncErr) {
+      console.error("[PASSWORD_RESET_FAILED]", {
+        reason: "AUTH_CLAIM_SYNC_FAILED",
+        applicationUserId: user.id,
+        authUserId: targetAuthUserId,
+        error: syncErr.message,
+        timestamp: new Date().toISOString(),
+      });
+      // Password already updated in Auth — do not fail the user out of recovery.
     }
 
     return jsonOk({

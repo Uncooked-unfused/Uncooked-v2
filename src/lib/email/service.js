@@ -177,7 +177,16 @@ export async function sendEmail({ to, subject, html, text }) {
     }
   }
 
-  // 3. Fallback: Log email details cleanly in dev/test mode
+  // 3. Dev-only console mock. Production must fail closed (no silent "success").
+  if (process.env.NODE_ENV === "production") {
+    console.error("[EmailService] No email provider configured or all providers failed in production");
+    return {
+      success: false,
+      provider: "none",
+      error: "EMAIL_PROVIDER_UNAVAILABLE",
+    };
+  }
+
   console.log(`\n=================== [DEV EMAIL DISPATCH] ===================`);
   console.log(`To: ${to}`);
   console.log(`From: ${FROM_EMAIL}`);

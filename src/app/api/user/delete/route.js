@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { createClient } from "@supabase/supabase-js";
 import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireUser } from "@/server/http/guards";
 import { eraseUser } from "@/server/services/erasure";
@@ -26,14 +27,40 @@ export async function POST(req) {
 
     const user = await prisma.user.findUnique({
       where: { id: auth.user.id },
-      select: { id: true, passwordHash: true },
+      select: { id: true, email: true, passwordHash: true, authUserId: true },
     });
-    if (!user?.passwordHash) {
+    if (!user) {
       return jsonError("Unable to verify account ownership.", 400, "INVALID_STATE");
     }
 
-    const ok = await verifyPassword(password, user.passwordHash);
-    if (!ok) {
+    let ownershipVerified = false;
+
+    // Preferred path: Supabase Auth password proof (covers migrated users).
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (supabaseUrl && anonKey && !supabaseUrl.includes("placeholder") && user.email) {
+      try {
+        const supabase = createClient(supabaseUrl, anonKey, {
+          auth: { autoRefreshToken: false, persistSession: false },
+        });
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password,
+        });
+        if (!error && data?.user) {
+          ownershipVerified = true;
+        }
+      } catch (err) {
+        console.warn("[USER_DELETE] Supabase reauth failed:", err.message);
+      }
+    }
+
+    // Legacy fallback for unmigrated accounts that still have passwordHash.
+    if (!ownershipVerified && user.passwordHash) {
+      ownershipVerified = await verifyPassword(password, user.passwordHash);
+    }
+
+    if (!ownershipVerified) {
       return jsonError("Incorrect password.", 403, "FORBIDDEN");
     }
 

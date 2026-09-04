@@ -14,12 +14,26 @@ export function getSupabaseAdmin() {
 /**
  * Sync Prisma-backed claims into app_metadata (service-role only).
  * Never put privileged claims in user_metadata — clients can spoof that.
+ *
+ * @param {string} authUserId
+ * @param {{ role?: string, accountStatus?: string, lockedUntil?: Date|string|null }} [claims]
  */
-export async function syncAuthAppMetadata(authUserId, { role, accountStatus } = {}) {
+export async function syncAuthAppMetadata(authUserId, { role, accountStatus, lockedUntil } = {}) {
   if (!authUserId) return;
   const patch = {};
   if (role != null) patch.role = String(role || "USER").toUpperCase();
   if (accountStatus != null) patch.account_status = String(accountStatus).toUpperCase();
+  if (lockedUntil !== undefined) {
+    if (lockedUntil == null || lockedUntil === "") {
+      patch.locked_until = null;
+    } else {
+      const d = lockedUntil instanceof Date ? lockedUntil : new Date(lockedUntil);
+      patch.locked_until = Number.isNaN(d.getTime()) ? null : d.toISOString();
+    }
+  }
+  if (accountStatus && String(accountStatus).toUpperCase() === "ACTIVE" && lockedUntil === undefined) {
+    patch.locked_until = null;
+  }
   if (Object.keys(patch).length === 0) return;
 
   const admin = getSupabaseAdmin();

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { jsonError, jsonOk, readJson } from "@/server/http/envelope";
 import { enforceMutationGuards } from "@/server/http/guards";
 import { sendVerificationEmail } from "@/lib/email/service";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 export async function POST(req) {
   try {
@@ -48,16 +49,23 @@ export async function POST(req) {
       },
     });
 
-    const host = req.headers.get("host") || "localhost:3000";
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const verificationUrl = `${protocol}://${host}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
+    let baseUrl;
+    try {
+      baseUrl = getAppBaseUrl();
+    } catch {
+      return jsonError("Application URL is not configured", 503, "SERVICE_UNAVAILABLE");
+    }
+    const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await sendVerificationEmail({
+    const sent = await sendVerificationEmail({
       email,
       name: user.name || user.fullName || "User",
       token,
       verificationUrl,
     });
+    if (sent && sent.success === false) {
+      return jsonError("Unable to send verification email. Please try again later.", 503, "EMAIL_PROVIDER_UNAVAILABLE");
+    }
 
     return jsonOk({
       message: "Verification email sent successfully.",

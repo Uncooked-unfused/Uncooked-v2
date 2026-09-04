@@ -25,6 +25,22 @@ export async function POST(req, { params }) {
     const hours = Math.min(Math.max(parseInt(body.hours, 10) || 24, 1), 168);
     const lockedUntil = lock ? new Date(Date.now() + hours * 3600 * 1000) : null;
 
+    const target = await prisma.user.findUnique({ where: { id }, select: { id: true, authUserId: true } });
+    if (!target) return jsonError("User not found", 404, "NOT_FOUND");
+
+    // Claim sync first when linked — fail closed so Edge and DB cannot diverge.
+    if (target.authUserId) {
+      try {
+        await syncAuthAppMetadata(target.authUserId, {
+          accountStatus: lock ? "LOCKED" : "ACTIVE",
+          lockedUntil: lock ? lockedUntil : null,
+        });
+      } catch (syncErr) {
+        console.error("[LOCK] Failed to sync app_metadata.account_status:", syncErr.message);
+        return jsonError("Unable to update account lock claim. Please retry.", 503, "DEPENDENCY_UNAVAILABLE");
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
@@ -33,16 +49,6 @@ export async function POST(req, { params }) {
         tokenVersion: lock ? { increment: 1 } : undefined,
       },
     });
-
-    if (updatedUser.authUserId) {
-      try {
-        await syncAuthAppMetadata(updatedUser.authUserId, {
-          accountStatus: lock ? "LOCKED" : "ACTIVE",
-        });
-      } catch (syncErr) {
-        console.error("[LOCK] Failed to sync app_metadata.account_status:", syncErr.message);
-      }
-    }
 
     await logAuditEvent({
       action: lock ? "ACCOUNT_LOCK" : "ACCOUNT_UNLOCK",
