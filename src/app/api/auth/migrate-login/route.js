@@ -37,24 +37,16 @@ export async function POST(req) {
       where: { email: cleanEmail },
     });
 
-    if (!user) {
-      return NextResponse.json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials provided." } }, { status: 401 });
-    }
-
-    // 2. State A: Hard Stop for Already-Migrated Accounts
-    if (user.authUserId !== null) {
+    // Uniform failure for missing / already-migrated / no-hash accounts (#49).
+    // Do not reveal migration state before (or instead of) credential checks.
+    if (!user || user.authUserId !== null || !user.passwordHash) {
       return NextResponse.json(
-        { success: false, error: { code: "ALREADY_MIGRATED", message: "Account already migrated. Please sign in normally." } },
-        { status: 400 }
+        { success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials provided." } },
+        { status: 401 }
       );
     }
 
-    // Must have a legacy password hash to proceed
-    if (!user.passwordHash) {
-      return NextResponse.json({ success: false, error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials provided." } }, { status: 401 });
-    }
-
-    // 3. Verify legacy password BEFORE any identity or password mutation
+    // Verify legacy password BEFORE any identity or password mutation
     const isValid = await verifyPassword(password, user.passwordHash);
 
     if (!isValid) {

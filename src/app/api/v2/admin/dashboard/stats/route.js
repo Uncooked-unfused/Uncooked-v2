@@ -83,7 +83,11 @@ export async function GET() {
       },
       recentEvents,
       recentOpportunities,
-      auditLogs: recentLogs,
+      // Include targetId alias for older UI contracts (#54).
+      auditLogs: recentLogs.map((log) => ({
+        ...log,
+        targetId: log.entityId || null,
+      })),
     });
   } catch (error) {
     return safeError(error, "Unable to fetch admin stats");

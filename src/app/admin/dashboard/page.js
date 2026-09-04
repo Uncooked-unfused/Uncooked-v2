@@ -407,7 +407,7 @@ export default function AdminDashboardPage() {
                       {log.actorId || "System"}
                     </td>
                     <td className="py-3 px-3 font-mono text-gray-500 truncate max-w-[120px]">
-                      {log.targetId || "N/A"}
+                      {log.entityId || log.targetId || "N/A"}
                     </td>
                     <td className="py-3 px-3 text-gray-400 font-mono">
                       {new Date(log.createdAt).toLocaleString()}

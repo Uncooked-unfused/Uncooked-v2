@@ -260,6 +260,38 @@ test("OWASP: CSP must not allow unsafe-eval", async () => {
   assert.ok(csp.includes("script-src"));
 });
 
+test("Issue #52: support ticket status transitions", async () => {
+  const { validateSupportStatusTransition } = await import("../../src/server/support/ticketStatus.js");
+  assert.equal(validateSupportStatusTransition("OPEN", "IN_PROGRESS").ok, true);
+  assert.equal(validateSupportStatusTransition("IN_PROGRESS", "RESOLVED").ok, true);
+  assert.equal(validateSupportStatusTransition("CLOSED", "IN_PROGRESS").ok, false);
+  assert.equal(validateSupportStatusTransition("OPEN", "NOPE").ok, false);
+});
+
+test("Issue #50: degraded rate-limit policy classes", async () => {
+  const { degradedModePolicy } = await import("../../src/server/http/rateLimit.js");
+  assert.equal(degradedModePolicy("rl_auth_login:abc"), "fail_closed");
+  assert.equal(degradedModePolicy("rl_admin_support:x"), "fail_closed");
+  assert.equal(degradedModePolicy("rl_contact:x"), "fail_open_strict");
+  assert.equal(degradedModePolicy("rl_misc:x"), "fail_open");
+});
+
+test("Issue #49: migrate-login must not emit ALREADY_MIGRATED", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(new URL("../../src/app/api/auth/migrate-login/route.js", import.meta.url), "utf8");
+  assert.equal(src.includes("ALREADY_MIGRATED"), false);
+  assert.ok(src.includes("INVALID_CREDENTIALS"));
+});
+
+test("Issue #54: dashboard stats expose targetId alias for entityId", async () => {
+  const fs = await import("node:fs");
+  const src = fs.readFileSync(
+    new URL("../../src/app/api/v2/admin/dashboard/stats/route.js", import.meta.url),
+    "utf8"
+  );
+  assert.ok(src.includes("targetId: log.entityId"));
+});
+
 test("Issue #34: production email path must not report mock success", async () => {
   const prev = process.env.NODE_ENV;
   const prevResend = process.env.RESEND_API_KEY;

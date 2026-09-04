@@ -16,7 +16,11 @@ export async function enforceMutationGuards(req, { rateKey, limit = 30, windowMs
   const ipHash = hashIp(ip);
   const result = await rateLimitAsync(`${rateKey}:${ipHash}`, limit, windowMs);
   if (!result.ok) {
-    return jsonError("Too many requests. Please try again later.", 429, "RATE_LIMITED", rateLimitHeaders(result));
+    const msg =
+      result.backend === "degraded_fail_closed"
+        ? "Security controls temporarily unavailable. Please try again shortly."
+        : "Too many requests. Please try again later.";
+    return jsonError(msg, 429, "RATE_LIMITED", rateLimitHeaders(result));
   }
 
   if (!skipKillSwitch) {

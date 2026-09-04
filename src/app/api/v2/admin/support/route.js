@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendSupportTicketNotification } from "@/lib/email/service";
 import { requireSuperAdmin, enforceMutationGuards } from "@/server/http/guards";
+import { validateSupportStatusTransition } from "@/server/support/ticketStatus";
 
-export async function GET(req) {
+export async function GET() {
   try {
     const auth = await requireSuperAdmin();
     if (auth.error) return auth.error;
@@ -52,18 +53,28 @@ export async function POST(req) {
       return NextResponse.json({ error: "Support ticket not found" }, { status: 404 });
     }
 
-    // Add message if provided
+    let nextStatus = null;
+    if (status) {
+      const transition = validateSupportStatusTransition(ticket.status, status);
+      if (!transition.ok) {
+        return NextResponse.json(
+          { error: transition.error, code: "INVALID_STATUS_TRANSITION" },
+          { status: 400 }
+        );
+      }
+      nextStatus = transition.status;
+    }
+
     if (message) {
       await prisma.ticketMessage.create({
         data: {
           ticketId,
           senderId: user.id,
           senderType: "STAFF",
-          content: message,
+          content: String(message).slice(0, 8000),
         },
       });
 
-      // Send email notification to user
       if (ticket.user?.email) {
         await sendSupportTicketNotification({
           to: ticket.user.email,
@@ -77,11 +88,10 @@ export async function POST(req) {
       }
     }
 
-    // Update status if provided
     const updatedTicket = await prisma.supportTicket.update({
       where: { id: ticketId },
       data: {
-        ...(status ? { status } : {}),
+        ...(nextStatus ? { status: nextStatus } : {}),
         updatedAt: new Date(),
       },
       include: {
@@ -99,4 +109,3 @@ export async function POST(req) {
     return NextResponse.json({ error: "Failed to process support response" }, { status: 500 });
   }
 }
-

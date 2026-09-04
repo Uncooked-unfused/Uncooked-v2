@@ -64,10 +64,21 @@ export async function POST(req) {
       return jsonError("Incorrect password.", 403, "FORBIDDEN");
     }
 
-    await eraseUser(auth.user.id, {
-      actorId: auth.user.id,
-      ipHash: hashIp(getClientIp(req)),
-    });
+    try {
+      await eraseUser(auth.user.id, {
+        actorId: auth.user.id,
+        ipHash: hashIp(getClientIp(req)),
+      });
+    } catch (eraseErr) {
+      if (eraseErr?.code === "AUTH_ERASURE_PENDING") {
+        return jsonOk({
+          message:
+            "Your local account data was erased. Auth identity deletion is pending retry; sessions are invalidated.",
+          authErasureStatus: "PENDING",
+        });
+      }
+      throw eraseErr;
+    }
 
     return jsonOk({
       message: "Your account and personal data have been erased. Session credentials are no longer valid.",
