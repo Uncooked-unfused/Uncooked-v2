@@ -97,7 +97,13 @@ export async function middleware(request) {
   }
 
   const status = String(user?.app_metadata?.account_status || "").toUpperCase();
-  const isBlocked = status === "LOCKED" || status === "DISABLED" || status === "DELETED";
+  const lockedUntilRaw = user?.app_metadata?.locked_until;
+  const lockedUntilMs = lockedUntilRaw ? Date.parse(String(lockedUntilRaw)) : NaN;
+  // Temporary locks must expire: LOCKED without a future locked_until is treated as active lock;
+  // LOCKED with an expired locked_until is ignored at the Edge (Node heal clears the claim).
+  const lockStillActive =
+    status === "LOCKED" && (!Number.isFinite(lockedUntilMs) || lockedUntilMs > Date.now());
+  const isBlocked = lockStillActive || status === "DISABLED" || status === "DELETED";
   if (user && isBlocked) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(

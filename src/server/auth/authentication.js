@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import prisma from "@/lib/prisma";
+import { syncAuthAppMetadata, syncAuthAppRole } from "@/lib/supabase/admin";
 
 const PUBLIC_USER_SELECT = {
   id: true,
@@ -79,6 +80,39 @@ export async function getAuthUserAndProfile() {
         console.warn(`[AUTH_RESOLVE] Account blocked for userId: ${user.id} authUserId: ${authUser.id}`);
         return { authUser, user: null, state: "ACCOUNT_BLOCKED" };
       }
+
+      // Lazy claim heal: keep app_metadata.role aligned with DB (fixes SUPER_ADMIN /admin gate).
+      // Also clear expired LOCKED claims so Edge cannot permanently lock out users.
+      if (user.authUserId) {
+        const dbRole = String(user.role || "USER").toUpperCase();
+        const claimRole = String(authUser.app_metadata?.role || "").toUpperCase();
+        const claimStatus = String(authUser.app_metadata?.account_status || "").toUpperCase();
+        const lockExpired =
+          claimStatus === "LOCKED" &&
+          (!user.lockedUntil || new Date(user.lockedUntil) <= new Date());
+
+        try {
+          if (claimRole !== dbRole) {
+            await syncAuthAppRole(user.authUserId, dbRole);
+          }
+          if (lockExpired) {
+            await syncAuthAppMetadata(user.authUserId, {
+              accountStatus: "ACTIVE",
+              lockedUntil: null,
+            });
+            if (user.lockedUntil) {
+              user = await prisma.user.update({
+                where: { id: user.id },
+                data: { lockedUntil: null, failedLoginAttempts: 0 },
+                select: PUBLIC_USER_SELECT,
+              });
+            }
+          }
+        } catch (healErr) {
+          console.warn(`[AUTH_CLAIM_HEAL] userId=${user.id}: ${healErr.message}`);
+        }
+      }
+
       return { authUser, user, state: "AUTHENTICATED" };
     }
 

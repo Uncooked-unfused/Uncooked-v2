@@ -217,5 +217,47 @@ test("Final Patch: Migrated Account Password Authority Invariant", () => {
   assert.equal(canAuthenticateLegacy(unmigratedUser), true, "Unmigrated user may use legacy hash for JIT migration");
 });
 
+test("Issue #32: Edge LOCKED claim respects locked_until expiry", () => {
+  const isEdgeBlocked = (appMetadata) => {
+    const status = String(appMetadata?.account_status || "").toUpperCase();
+    const lockedUntilMs = appMetadata?.locked_until ? Date.parse(String(appMetadata.locked_until)) : NaN;
+    const lockStillActive =
+      status === "LOCKED" && (!Number.isFinite(lockedUntilMs) || lockedUntilMs > Date.now());
+    return lockStillActive || status === "DISABLED" || status === "DELETED";
+  };
+
+  assert.equal(isEdgeBlocked({ account_status: "LOCKED", locked_until: new Date(Date.now() + 60_000).toISOString() }), true);
+  assert.equal(isEdgeBlocked({ account_status: "LOCKED", locked_until: new Date(Date.now() - 60_000).toISOString() }), false);
+  assert.equal(isEdgeBlocked({ account_status: "DISABLED" }), true);
+  assert.equal(isEdgeBlocked({ account_status: "ACTIVE" }), false);
+});
+
+test("Issue #38: getAppBaseUrl never trusts request Host", async () => {
+  const prevApp = process.env.NEXT_PUBLIC_APP_URL;
+  const prevAuth = process.env.NEXTAUTH_URL;
+  process.env.NEXT_PUBLIC_APP_URL = "https://app.uncooked.example";
+  process.env.NEXTAUTH_URL = "https://ignored.example";
+  const { getAppBaseUrl } = await import("../../src/lib/appUrl.js");
+  assert.equal(getAppBaseUrl(), "https://app.uncooked.example");
+  process.env.NEXT_PUBLIC_APP_URL = prevApp;
+  process.env.NEXTAUTH_URL = prevAuth;
+});
+
+test("Issue #34: production email path must not report mock success", async () => {
+  const prev = process.env.NODE_ENV;
+  const prevResend = process.env.RESEND_API_KEY;
+  const prevHost = process.env.SMTP_HOST;
+  process.env.NODE_ENV = "production";
+  delete process.env.RESEND_API_KEY;
+  delete process.env.SMTP_HOST;
+  const { sendEmail } = await import("../../src/lib/email/service.js");
+  const result = await sendEmail({ to: "a@b.co", subject: "t", html: "<p>x</p>", text: "x" });
+  assert.equal(result.success, false);
+  assert.equal(result.provider, "none");
+  process.env.NODE_ENV = prev;
+  if (prevResend != null) process.env.RESEND_API_KEY = prevResend;
+  if (prevHost != null) process.env.SMTP_HOST = prevHost;
+});
+
 
 

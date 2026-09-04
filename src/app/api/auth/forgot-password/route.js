@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { jsonError, jsonOk, readJson } from "@/server/http/envelope";
 import { enforceMutationGuards } from "@/server/http/guards";
 import { sendPasswordResetEmail } from "@/lib/email/service";
+import { getAppBaseUrl } from "@/lib/appUrl";
 
 export async function POST(req) {
   try {
@@ -53,15 +54,23 @@ export async function POST(req) {
       },
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || `${req.headers.get("x-forwarded-proto") || "https"}://${req.headers.get("host") || "localhost:3000"}`;
-    const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    let baseUrl;
+    try {
+      baseUrl = getAppBaseUrl();
+    } catch {
+      return jsonError("Application URL is not configured", 503, "SERVICE_UNAVAILABLE");
+    }
+    const resetUrl = `${baseUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await sendPasswordResetEmail({
+    const sent = await sendPasswordResetEmail({
       email,
       name: user.name || user.fullName || "User",
       token,
       resetUrl,
     });
+    if (sent && sent.success === false) {
+      return jsonError("Unable to send password reset email. Please try again later.", 503, "EMAIL_PROVIDER_UNAVAILABLE");
+    }
 
     return jsonOk({
       message: "If an account exists with that email, a password reset link has been sent.",

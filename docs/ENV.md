@@ -33,12 +33,14 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 | Variable | Example | Used for |
 | --- | --- | --- |
-| `UPSTASH_REDIS_REST_URL` | `https://xxxx.upstash.io` | Shared rate limits across serverless isolates |
+| `UPSTASH_REDIS_REST_URL` | `https://xxxx.upstash.io` | **Required in production.** Shared rate limits across serverless isolates. `/api/health` returns 503 in prod if missing. |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash token | Auth for Redis REST |
 | `SENTRY_DSN` | `https://...@sentry.io/...` | Server error reporting |
 | `NEXT_PUBLIC_SENTRY_DSN` | same or browser DSN | Client error reporting (optional) |
 | `SENTRY_ENVIRONMENT` | `production` / `preview` | Sentry env tag |
 | `DATABASE_SSL_REJECT_UNAUTHORIZED` | `true` (default) | TLS to Postgres. Set `false` only if your provider requires it |
+
+**Never set `NODE_TLS_REJECT_UNAUTHORIZED=0` in production or preview.** It disables TLS certificate verification process-wide. `/api/health` fails closed in production if that bypass is present.
 
 Without Redis, rate limits fall back to **in-memory** (per instance). Fine for local; **not** enough for multi-instance prod peak.
 

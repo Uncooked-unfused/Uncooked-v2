@@ -3,6 +3,7 @@ import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireSuperAdmin } from "@/server/http/guards";
 import { logAuditEvent } from "@/server/auth/audit";
 import { getClientIp, hashIp } from "@/server/http/ip";
+import { syncAuthAppRole } from "@/lib/supabase/admin";
 
 const ACTIONS = {
   APPROVE: "APPROVED",
@@ -57,6 +58,25 @@ export async function POST(req, { params }) {
 
       return app;
     });
+
+    if (newStatus === "APPROVED") {
+      const promoted = await prisma.user.findUnique({
+        where: { id: application.userId },
+        select: { authUserId: true },
+      });
+      if (promoted?.authUserId) {
+        try {
+          await syncAuthAppRole(promoted.authUserId, "ORGANIZER");
+        } catch (syncErr) {
+          console.error("[KYC] Failed to sync app_metadata.role after approve:", syncErr.message);
+          return jsonError(
+            "Host approved in database but role claim sync failed. Retry sync or contact engineering.",
+            503,
+            "DEPENDENCY_UNAVAILABLE"
+          );
+        }
+      }
+    }
 
     await logAuditEvent({
       action:
