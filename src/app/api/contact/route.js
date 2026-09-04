@@ -10,6 +10,8 @@ const CATEGORIES = new Set([
   "Campus Partnership",
   "Technical Support",
   "General Inquiry",
+  "DPDP Rights / Grievance",
+  "Unlawful Content Report",
 ]);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -65,9 +67,16 @@ export async function POST(req) {
       message,
     });
 
-    return jsonOk({
-      message: "Your message has been received. We will respond to the email you provided.",
-    }, 201);
+    const isGrievance = category === "DPDP Rights / Grievance" || category === "Unlawful Content Report";
+    return jsonOk(
+      {
+        message: isGrievance
+          ? "Your grievance / rights request has been recorded. We aim to resolve Data Principal grievances within 90 days under the DPDP Rules, 2025."
+          : "Your message has been received. We will respond to the email you provided.",
+        category,
+      },
+      201
+    );
   } catch (error) {
     return safeError(error, "Unable to send message");
   }

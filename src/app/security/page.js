@@ -1,11 +1,11 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Shield, Lock, Server, CheckCircle2, Activity } from "lucide-react";
-import { LEGAL } from "@/server/config/legal";
+import { DPDP, LEGAL } from "@/server/config/legal";
 
 export const metadata = {
-  title: "Security | Uncooked",
-  description: "How Uncooked protects accounts and personal data.",
+  title: "Security | Opportia",
+  description: "How Opportia protects accounts and personal data under DPDP Rules, 2025 reasonable security safeguards.",
 };
 
 export default function SecurityPage() {
@@ -57,6 +57,22 @@ export default function SecurityPage() {
               </div>
             </div>
 
+            <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">
+              <div className="flex items-center gap-3 mb-4">
+                <Activity className="w-5 h-5 text-amber-400" />
+                <h3 className="text-lg font-bold text-white">DPDP Rules, 2025 — breach &amp; logs</h3>
+              </div>
+              <p className="text-sm text-gray-400 leading-relaxed mb-3">
+                Under Rule 6 we maintain encryption-in-transit, access controls, audit logging, and organisational
+                measures. Security and access logs are retained for at least {DPDP.securityLogRetentionYears} year.
+              </p>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Under Rule 7, if we become aware of a personal data breach we will notify affected users without delay
+                and submit a detailed report to the {DPDP.boardName} within {DPDP.breachBoardHours} hours (or longer if
+                the Board allows). Report suspected incidents to {LEGAL.grievanceEmail}.
+              </p>
+            </div>
+
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">
                 <div className="flex items-center gap-3 mb-4">
@@ -64,7 +80,7 @@ export default function SecurityPage() {
                   <h3 className="text-lg font-bold text-white">Payments</h3>
                 </div>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  Uncooked is not PCI-DSS certified and does not process cards on this version. When checkout is enabled, we will use a hosted payment partner so card data never touches our servers (PCI SAQ A model). Until then, do not send card numbers to us.
+                  Opportia is not PCI-DSS certified and does not process cards on this version. When checkout is enabled, we will use a hosted payment partner so card data never touches our servers (PCI SAQ A model). Until then, do not send card numbers to us.
                 </p>
               </div>
               <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">

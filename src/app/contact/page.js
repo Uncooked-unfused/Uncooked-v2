@@ -22,27 +22,27 @@ const SUPPORT_CHANNELS = [
   {
     icon: <Mail className="w-5 h-5 text-orange-500" />,
     title: "Official Support & Inquiries",
-    email: "support@uncooked.in",
-    sub: "Direct channel for hosts, event ticketing, campus partnerships, and technical help.",
+    email: "support@opportia.in",
+    sub: "Direct channel for hosts, event ticketing, campus partnerships, technical help, and DPDP grievances.",
   },
 ];
 
 const FAQS = [
   {
     q: "How do I verify my campus club or student society?",
-    a: "Verification takes under 5 minutes! Simply register with your official campus (.edu) email or upload your club charter from your university portal.",
+    a: "Apply from Host → verification. Organisers are reviewed by admins before public event creation is enabled.",
   },
   {
-    q: "Is Uncooked free for student organizations?",
-    a: "Yes! Uncooked is 100% free for all free campus events, workshops, and club meetups. For paid ticketed events, we charge a minimal fee to cover payment processing.",
+    q: "How do I exercise my data rights under DPDP?",
+    a: "Signed-in users can export or erase data from Profile. For grievances or other rights requests, use the contact form category “DPDP Rights / Grievance”. We aim to resolve within 90 days under the DPDP Rules, 2025.",
   },
   {
-    q: "How does the offline QR check in feature work?",
-    a: "Our check in app caches attendee ticket signatures locally on your device. Even if your venue loses Wi-Fi or cellular signal, check ins remain 100% operational.",
+    q: "How does QR check-in work?",
+    a: "Tickets are HMAC-signed on the server. Hosts scan with the in-product scanner. Offline caching depends on your deployment configuration.",
   },
   {
-    q: "Can we integrate Uncooked with our university website?",
-    a: "Absoluty! We provide embeddable event widgets and developer APIs to showcase your upcoming events directly on your student portal.",
+    q: "How do I report unlawful content?",
+    a: "Use the contact form category “Unlawful Content Report” and include the listing URL. We act on lawful takedown notices under the IT Intermediary Rules (as amended 2025).",
   },
 ];
 
@@ -184,6 +184,8 @@ export default function ContactPage() {
                       className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-[var(--accent-orange)] transition-colors cursor-pointer"
                     >
                       <option value="Host Verification">Host & Club Verification</option>
+                      <option value="DPDP Rights / Grievance">DPDP Rights / Grievance</option>
+                      <option value="Unlawful Content Report">Unlawful Content Report</option>
                       <option value="Event Ticketing">Event Ticketing & Passes</option>
                       <option value="Campus Partnership">University & Campus Alliance</option>
                       <option value="Technical Support">Technical Support & Telemetry</option>

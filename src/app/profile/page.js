@@ -38,6 +38,8 @@ export default function ProfilePage() {
     department: "",
     clubAssociation: "",
     interests: [],
+    privacyNomineeName: "",
+    privacyNomineeEmail: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -61,6 +63,8 @@ export default function ProfilePage() {
           department: next.department || "",
           clubAssociation: next.clubAssociation || "",
           interests: parseInterests(next.interests),
+          privacyNomineeName: next.privacyNomineeName || "",
+          privacyNomineeEmail: next.privacyNomineeEmail || "",
         });
       })
       .catch(() => setError("Unable to load profile"))
@@ -92,6 +96,8 @@ export default function ProfilePage() {
           department: form.department,
           clubAssociation: form.clubAssociation,
           interests: form.interests,
+          privacyNomineeName: form.privacyNomineeName,
+          privacyNomineeEmail: form.privacyNomineeEmail,
         }),
       });
       const payload = await res.json();
@@ -117,7 +123,7 @@ export default function ProfilePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "uncooked-data-export.json";
+    a.download = "opportia-data-export.json";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -252,6 +258,39 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
+                <div className="pt-2 border-t border-border-subtle">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-text-secondary mb-3">
+                    DPDP nominee (optional)
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-text-secondary mb-2">
+                        Nominee name
+                      </label>
+                      <input
+                        maxLength={80}
+                        value={form.privacyNomineeName}
+                        onChange={(e) => setForm({ ...form, privacyNomineeName: e.target.value })}
+                        placeholder="Person who may exercise your rights"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-[var(--accent-orange)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-text-secondary mb-2">
+                        Nominee email
+                      </label>
+                      <input
+                        type="email"
+                        maxLength={120}
+                        value={form.privacyNomineeEmail}
+                        onChange={(e) => setForm({ ...form, privacyNomineeEmail: e.target.value })}
+                        placeholder="nominee@example.com"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm text-text-primary outline-none focus:border-[var(--accent-orange)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={saving}
@@ -266,10 +305,15 @@ export default function ProfilePage() {
               <section className="p-6 sm:p-8 rounded-3xl bg-card border border-border-subtle space-y-4">
                 <div className="flex items-center gap-2 text-text-primary font-bold text-sm">
                   <Shield className="w-4 h-4 text-[var(--accent-orange)]" />
-                  Data rights (DPDP)
+                  Data rights (DPDP Act, 2023 / Rules, 2025)
                 </div>
                 <p className="text-xs text-text-secondary leading-relaxed">
-                  Export a copy of your personal data, or erase this account. Erasure invalidates every session.
+                  Export a copy of your personal data, or erase this account. Erasure invalidates sessions. For
+                  grievances use Contact → “DPDP Rights / Grievance” (response within 90 days). See the{" "}
+                  <a href="/privacy" className="underline text-text-primary">
+                    Privacy Notice
+                  </a>
+                  .
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <button
