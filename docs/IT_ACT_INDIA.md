@@ -1,7 +1,7 @@
-# India IT & data-protection law — Uncooked
+# India IT & data-protection law — OPPORTIA
 
 **Document type:** Internal product mapping (not a government certificate)  
-**Product:** Uncooked campus events platform  
+**Product:** OPPORTIA campus events platform  
 **Country of operation:** India  
 **Date:** 27 August 2026  
 **Privacy / Terms version in product:** `2026-08-27`  
@@ -15,9 +15,9 @@ No Indian ministry, MeitY, the Data Protection Board, or CERT-In issues a badge 
 
 **Status in product: implemented for a campus web app that is a Data Fiduciary.**
 
-| Obligation in the Act | What Uncooked does in code |
+| Obligation in the Act | What OPPORTIA does in code |
 | :--- | :--- |
-| Identify a Data Fiduciary | Privacy Policy states Uncooked is the Data Fiduciary for personal data collected on this site. |
+| Identify a Data Fiduciary | Privacy Policy states OPPORTIA is the Data Fiduciary for personal data collected on this site. |
 | Notice before / at collection | `/privacy` explains what is collected, why, retention, sharing, and rights. Signup requires reading Terms + Privacy. |
 | Consent — free, specific, informed, unambiguous | Signup cannot complete without `acceptTerms` and stored `ConsentRecord` rows (`TERMS`, `PRIVACY`, `AGE_18`) with version and hashed IP. |
 | Purpose limitation | We collect name, email, optional campus/department, event registrations, host-application notes, opportunity applications, and support messages. Phone is not collected. We do not run advertising cookies or sell personal data. |
@@ -119,7 +119,7 @@ These are **not** “followed perfectly” because they either do not apply yet 
 
 | Law / regime | Why we do not claim it |
 | :--- | :--- |
-| PCI-DSS | No card processing on Uncooked servers. |
+| PCI-DSS | No card processing on Opportia servers. |
 | RBI PA/PG guidelines | No live payment aggregation. |
 | ISO/IEC 27001 certification | We implement security controls; we do not hold an ISO certificate. |
 | CERT-In 6-hour incident reporting as a certified process | We have an audit log and a public report address; a full CERT-In runbook + 6-hour clock is an operations process, not a product feature. |

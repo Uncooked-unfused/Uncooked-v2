@@ -100,7 +100,7 @@ export default function Navbar({ forceDarkTop = false }) {
               className="text-lg font-bold tracking-tight"
               style={{ color: "var(--text-primary)" }}
             >
-              uncooked
+              OPPORTIA
             </span>
             <span
               className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"

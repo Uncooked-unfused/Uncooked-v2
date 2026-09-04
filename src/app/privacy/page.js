@@ -4,8 +4,8 @@ import { EyeOff, UserSquare2, Share2, Settings2, Cookie, Scale, Mail } from "luc
 import { LEGAL } from "@/server/config/legal";
 
 export const metadata = {
-  title: "Privacy Policy | Uncooked",
-  description: "How Uncooked collects, uses, and erases personal data under the DPDP Act, 2023.",
+  title: "Privacy Policy | Opportia",
+  description: "How OPPORTIA collects, uses, and erases personal data under the DPDP Act, 2023.",
 };
 
 export default function PrivacyPage() {
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
                   <h3 className="text-lg font-bold text-white">Sharing</h3>
                 </div>
                 <p>
-                  Verified event hosts can see attendee name as needed to run a guest list. Processors (hosting, database) act on our instructions. We do not sell personal data. If we add a payment processor later, card data will be handled by that processor, not stored on Uncooked servers.
+                  Verified event hosts can see attendee name as needed to run a guest list. Processors (hosting, database) act on our instructions. We do not sell personal data. If we add a payment processor later, card data will be handled by that processor, not stored on Opportia servers.
                 </p>
               </div>
               <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
             <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">
               <h2 className="text-xl font-bold text-white mb-4">Children</h2>
               <p>
-                Uncooked is for persons 18 years or older. We require an 18+ attestation at signup. If you believe a child has created an account, email {LEGAL.grievanceEmail} and we will erase it.
+                OPPORTIA is for persons 18 years or older. We require an 18+ attestation at signup. If you believe a child has created an account, email {LEGAL.grievanceEmail} and we will erase it.
               </p>
             </div>
 

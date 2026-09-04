@@ -4,8 +4,8 @@ import { FileText, CheckCircle2, AlertCircle, Scale, Shield } from "lucide-react
 import { LEGAL } from "@/server/config/legal";
 
 export const metadata = {
-  title: "Terms of Service | Uncooked",
-  description: "Terms of Service for the Uncooked campus events platform.",
+  title: "Terms of Service | Opportia",
+  description: "Terms of Service for the OPPORTIA campus events platform.",
 };
 
 export default function TermsPage() {
@@ -25,7 +25,7 @@ export default function TermsPage() {
               Terms of <span className="gradient-text">Service</span>
             </h1>
             <p className="text-lg leading-relaxed max-w-2xl" style={{ color: "var(--text-secondary)" }}>
-              These terms govern use of Uncooked. By creating an account or using the site, you agree to them. If you do not agree, do not use the service.
+              These terms govern use of Opportia. By creating an account or using the site, you agree to them. If you do not agree, do not use the service.
             </p>
           </div>
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
                   <div>
                     <h4 className="text-sm font-semibold text-white mb-1">Host responsibility</h4>
                     <p className="text-xs leading-relaxed">
-                      Hosts are solely responsible for event safety, venue rules, campus policy, and local law. Uncooked provides software, not event operations. We may unpublish events that appear unsafe, misleading, or unlawful.
+                      Hosts are solely responsible for event safety, venue rules, campus policy, and local law. Opportia provides software, not event operations. We may unpublish events that appear unsafe, misleading, or unlawful.
                     </p>
                   </div>
                 </li>
@@ -82,7 +82,7 @@ export default function TermsPage() {
                 <h2 className="text-xl font-bold text-white">Payments, acceptable use, liability</h2>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed mb-4">
-                Card and UPI checkout are not enabled on this version of the platform. Do not submit payment card data to Uncooked. When payments launch, they will be processed by a licensed payment partner and these terms will be updated.
+                Card and UPI checkout are not enabled on this version of the platform. Do not submit payment card data to Opportia. When payments launch, they will be processed by a licensed payment partner and these terms will be updated.
               </p>
               <p className="text-sm text-gray-400 leading-relaxed mb-4">
                 You may not probe, overload, or circumvent access controls; post malware; harvest other users&apos; data; or use the service for unlawful content. We may pause writes (including registrations) during a security incident.

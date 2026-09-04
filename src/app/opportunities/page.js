@@ -26,11 +26,11 @@ const OPPORTUNITIES = [
   {
     id: "social-media-intern",
     title: "Social Media Marketing Intern",
-    company: "Uncooked",
+    company: "OPPORTIA",
     type: "Internship",
     pay: "$ TBD",
     location: "Remote",
-    desc: "Help us grow Uncooked across campus social media and student community channels. You will be building viral content and host spotlights.",
+    desc: "Help us grow Opportia across campus social media and student community channels. You will be building viral content and host spotlights.",
     skills: ["Social Media Management", "Content Creation", "Community Engagement"],
     badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
   },
@@ -81,7 +81,7 @@ const OPPORTUNITIES = [
   {
     id: "campus-growth-lead",
     title: "Campus Growth Lead",
-    company: "Uncooked Ecosystem",
+    company: "OPPORTIA Ecosystem",
     type: "Full Time",
     pay: "$30/hr",
     location: "On Campus",
@@ -313,7 +313,7 @@ export default function OpportunitiesPage() {
                 Hiring for your campus startup or club?
               </h3>
               <p className="text-xs sm:text-sm text-text-secondary mt-1">
-                Post internships and bounties for students on Uncooked. Posting requires a verified organiser account.
+                Post internships and bounties for students on Opportia. Posting requires a verified organiser account.
               </p>
             </div>
 

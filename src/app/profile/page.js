@@ -117,7 +117,7 @@ export default function ProfilePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "uncooked-data-export.json";
+    a.download = "OPPORTIA-data-export.json";
     a.click();
     URL.revokeObjectURL(url);
   };

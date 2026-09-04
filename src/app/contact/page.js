@@ -22,7 +22,7 @@ const SUPPORT_CHANNELS = [
   {
     icon: <Mail className="w-5 h-5 text-orange-500" />,
     title: "Official Support & Inquiries",
-    email: "support@uncooked.in",
+    email: "support@opportia.in",
     sub: "Direct channel for hosts, event ticketing, campus partnerships, and technical help.",
   },
 ];
@@ -33,15 +33,15 @@ const FAQS = [
     a: "Verification takes under 5 minutes! Simply register with your official campus (.edu) email or upload your club charter from your university portal.",
   },
   {
-    q: "Is Uncooked free for student organizations?",
-    a: "Yes! Uncooked is 100% free for all free campus events, workshops, and club meetups. For paid ticketed events, we charge a minimal fee to cover payment processing.",
+    q: "Is OPPORTIA free for student organizations?",
+    a: "Yes! OPPORTIA is 100% free for all free campus events, workshops, and club meetups. For paid ticketed events, we charge a minimal fee to cover payment processing.",
   },
   {
     q: "How does the offline QR check in feature work?",
     a: "Our check in app caches attendee ticket signatures locally on your device. Even if your venue loses Wi-Fi or cellular signal, check ins remain 100% operational.",
   },
   {
-    q: "Can we integrate Uncooked with our university website?",
+    q: "Can we integrate OPPORTIA with our university website?",
     a: "Absoluty! We provide embeddable event widgets and developer APIs to showcase your upcoming events directly on your student portal.",
   },
 ];
@@ -131,7 +131,7 @@ export default function ContactPage() {
                     Message Sent Successfully!
                   </h3>
                   <p className="text-sm text-text-secondary max-w-md">
-                    Thank you for contacting Uncooked. We stored your message and will reply to <span className="text-text-primary font-medium">{formData.email}</span>. We do not guarantee a two-hour SLA.
+                    Thank you for contacting OPPORTIA. We stored your message and will reply to <span className="text-text-primary font-medium">{formData.email}</span>. We do not guarantee a two-hour SLA.
                   </p>
                   <button
                     onClick={() => {

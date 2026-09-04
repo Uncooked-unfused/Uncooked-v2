@@ -13,14 +13,14 @@ export const QUICK_ACTIONS = [
 ];
 
 const DEFAULT_REPLY =
-  "I can help with events, passes, hosting, opportunities, and your account. Try a quick action below, or ask about something on Uncooked.";
+  "I can help with events, passes, hosting, opportunities, and your account. Try a quick action below, or ask about something on Opportia.";
 
 /** @type {{ test: (t: string) => boolean, reply: string }[]} */
 const RULES = [
   {
     test: (t) => /\b(hi|hello|hey|namaste)\b/.test(t) || t === "help",
     reply:
-      "Hi. I'm Aura, Uncooked's guide. I point you to real pages on this site: events, passes, host apply, opportunities, and privacy controls. What do you need?",
+      "Hi. I'm Aura, OPPORTIA's guide. I point you to real pages on this site: events, passes, host apply, opportunities, and privacy controls. What do you need?",
   },
   {
     test: (t) =>
@@ -89,12 +89,12 @@ const RULES = [
   {
     test: (t) => /\b(security|csrf|safe|scam|phish)\b/.test(t),
     reply:
-      "Uncooked uses signed sessions, CSRF origin checks, rate limits, and scrypt passwords. Never share your password in this chat. If something looks off, go to /security or /contact.",
+      "OPPORTIA uses signed sessions, CSRF origin checks, rate limits, and scrypt passwords. Never share your password in this chat. If something looks off, go to /security or /contact.",
   },
   {
     test: (t) => /\b(aura|who are you|llm|gpt|ai)\b/.test(t),
     reply:
-      "I'm a guided helper on Uncooked: short, campus-operational answers about what this site actually does. I'm not a free-form LLM and I don't run voice calls.",
+      "I'm a guided helper on Opportia: short, campus-operational answers about what this site actually does. I'm not a free-form LLM and I don't run voice calls.",
   },
 ];
 

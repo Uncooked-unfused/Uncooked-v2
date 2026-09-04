@@ -33,7 +33,7 @@ export default function AdminLayout({ children }) {
       try {
         const res = await fetch("/api/v2/admin/dashboard/stats");
         if (res.ok) {
-          setUser(nextAuthSession?.user || { role: "SUPER_ADMIN", email: "admin@uncooked.edu" });
+          setUser(nextAuthSession?.user || { role: "SUPER_ADMIN", email: "admin@opportia.edu" });
           setAuthorized(true);
         } else {
           setAuthorized(false);
@@ -79,7 +79,7 @@ export default function AdminLayout({ children }) {
           </div>
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
           <p className="text-sm text-gray-400 mb-6">
-            You do not have administrative privileges to access the Uncooked V2 Control Console.
+            You do not have administrative privileges to access the OPPORTIA V2 Control Console.
           </p>
           <div className="flex gap-3">
             <Link
@@ -108,7 +108,7 @@ export default function AdminLayout({ children }) {
         <div className="h-16 px-6 flex items-center justify-between border-b border-[#1e1e24]">
           <Link href="/" className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-[var(--accent-orange)]" />
-            <span className="font-bold text-lg tracking-tight text-white">uncooked</span>
+            <span className="font-bold text-lg tracking-tight text-white">OPPORTIA</span>
             <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-mono font-semibold">
               Admin V2
             </span>

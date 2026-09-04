@@ -1,6 +1,6 @@
-Uncooked V2 - Admin Panel Architecture & Implementation Specification
+OPPORTIA V2 - Admin Panel Architecture & Implementation Specification
 Document Version: 2.0.0
-Target Platform: Uncooked Platform V2 (Next.js 14 / Supabase / PostgreSQL)
+Target Platform: OPPORTIA Platform V2 (Next.js 14 / Supabase / PostgreSQL)
 Status: Implementation Blueprint
 
 1. Executive Summary & Vision

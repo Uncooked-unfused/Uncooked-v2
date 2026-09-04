@@ -3,7 +3,7 @@ import Footer from "@/components/layout/Footer";
 import { LEGAL } from "@/server/config/legal";
 
 export const metadata = {
-  title: "Cookie Notice | Uncooked",
+  title: "Cookie Notice | Opportia",
 };
 
 export default function CookiesPage() {
@@ -17,7 +17,7 @@ export default function CookiesPage() {
           </h1>
           <p className="text-sm text-gray-400 mb-8">Version {LEGAL.privacyVersion}</p>
           <div className="space-y-4 text-sm text-gray-400 leading-relaxed">
-            <p>Uncooked uses cookies that are required to operate the site. We do not use advertising or cross-site tracking cookies.</p>
+            <p>OPPORTIA uses cookies that are required to operate the site. We do not use advertising or cross-site tracking cookies.</p>
             <ul className="list-disc pl-5 space-y-2">
               <li><span className="text-white">Session cookie</span>: keeps you signed in (HTTP-only, SameSite=Lax, Secure in production).</li>
               <li><span className="text-white">CSRF cookie</span>: protects authentication forms.</li>

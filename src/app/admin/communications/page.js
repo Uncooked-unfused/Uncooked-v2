@@ -468,7 +468,7 @@ function CommunicationsContent() {
               <div className="bg-[#16161f] border-b border-[#242432] px-4 py-3 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-gray-400 font-mono text-[11px]">From:</span>
-                  <span className="text-white font-medium">UNCOOKED &lt;support@uncooked.in&gt;</span>
+                  <span className="text-white font-medium">Opportia &lt;support@opportia.in&gt;</span>
                 </div>
 
                 <div className="flex items-center justify-between text-xs border-t border-[#222230] pt-2">
@@ -503,7 +503,7 @@ function CommunicationsContent() {
                 {/* Announcement Title */}
                 <div>
                   <h4 className="text-base font-bold text-white">
-                    📢 Announcement from Uncooked Admin
+                    📢 Announcement from Opportia Admin
                   </h4>
                 </div>
 
@@ -541,7 +541,7 @@ function CommunicationsContent() {
 
                 {/* Email Footer Banner */}
                 <div className="border-t border-[#22222e] pt-4 text-center text-[10px] text-gray-500 space-y-1">
-                  <p>© {new Date().getFullYear()} Uncooked Portal. All rights reserved.</p>
+                  <p>© {new Date().getFullYear()} Opportia Portal. All rights reserved.</p>
                   <p>Privacy Policy • Support Desk</p>
                 </div>
               </div>
