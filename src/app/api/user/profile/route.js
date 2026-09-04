@@ -70,6 +70,16 @@ export async function PUT(req) {
     const name = body.name !== undefined ? String(body.name || "").trim().slice(0, 80) : undefined;
     const department = body.department !== undefined ? String(body.department || "").trim().slice(0, 120) : undefined;
     const clubAssociation = body.clubAssociation !== undefined ? String(body.clubAssociation || "").trim().slice(0, 120) : undefined;
+    const privacyNomineeName =
+      body.privacyNomineeName !== undefined ? String(body.privacyNomineeName || "").trim().slice(0, 80) : undefined;
+    let privacyNomineeEmail;
+    if (body.privacyNomineeEmail !== undefined) {
+      const raw = String(body.privacyNomineeEmail || "").toLowerCase().trim().slice(0, 120);
+      if (raw && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+        return jsonError("Nominee email must be a valid email address", 400);
+      }
+      privacyNomineeEmail = raw || null;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: auth.user.id },
@@ -78,6 +88,8 @@ export async function PUT(req) {
         ...(name !== undefined && { name }),
         ...(department !== undefined && { department: department || null }),
         ...(clubAssociation !== undefined && { clubAssociation: clubAssociation || null }),
+        ...(privacyNomineeName !== undefined && { privacyNomineeName: privacyNomineeName || null }),
+        ...(privacyNomineeEmail !== undefined && { privacyNomineeEmail }),
         ...(body.interests !== undefined && {
           interests: Array.isArray(body.interests)
             ? JSON.stringify(body.interests.slice(0, 20).map((i) => String(i).slice(0, 40)))

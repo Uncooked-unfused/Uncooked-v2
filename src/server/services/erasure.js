@@ -31,6 +31,8 @@ export async function eraseUser(userId, { ipHash = null, actorId = null } = {}) 
         department: null,
         clubAssociation: null,
         interests: null,
+        privacyNomineeName: null,
+        privacyNomineeEmail: null,
         lastLoginIpHash: null,
         deletedAt: new Date(),
         deleteRequestedAt: new Date(),

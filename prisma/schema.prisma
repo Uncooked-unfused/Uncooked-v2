@@ -36,6 +36,9 @@ model User {
   termsVersion         String?
   privacyAcceptedAt    DateTime?
   privacyVersion       String?
+  /** DPDP Act — nominee who may exercise Data Principal rights if you cannot. */
+  privacyNomineeName   String?
+  privacyNomineeEmail  String?
   disabledAt           DateTime?
   disabledReason       String?
   deletedAt            DateTime?
