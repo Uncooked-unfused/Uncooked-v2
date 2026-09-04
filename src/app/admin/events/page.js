@@ -475,7 +475,7 @@ export default function AdminEventsPage() {
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full bg-[#181824] border border-[#2a2a3c] rounded-xl px-3 py-2 text-white outline-none focus:border-amber-500"
-                    placeholder="e.g. Uncooked Hackathon 2026"
+                    placeholder="e.g. OPPORTIA Hackathon 2026"
                   />
                 </div>
 

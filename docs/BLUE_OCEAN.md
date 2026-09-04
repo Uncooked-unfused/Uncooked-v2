@@ -1,10 +1,10 @@
-# Uncooked — Red Ocean vs Blue Ocean
+# OPPORTIA — Red Ocean vs Blue Ocean
 
 **Date:** 28 August 2026  
 **Audience:** product, engineering, go-to-market  
 **Related:** [SECURITY_TEST.md](./SECURITY_TEST.md), [DESIGN.md](./DESIGN.md), [IT_ACT_INDIA.md](./IT_ACT_INDIA.md)
 
-This is the strategy Uncooked should execute. It is not a slogan. It maps to routes and roles that already exist in this repo.
+This is the strategy OPPORTIA should execute. It is not a slogan. It maps to routes and roles that already exist in this repo.
 
 ---
 
@@ -14,13 +14,13 @@ This is the strategy Uncooked should execute. It is not a slogan. It maps to rou
 
 **Blue ocean** = create space those products cannot occupy: **verified campus operations**. A dean, a gate volunteer, and a sponsor all trust the same list because the host is verified and the pass was scanned.
 
-| | Red ocean | Blue ocean for Uncooked |
+| | Red ocean | Blue ocean for Opportia |
 | :--- | :--- | :--- |
 | Question | How do we beat Eventbrite / Unstop / Luma? | How do we make “Instagram RSVP” insufficient for a real campus event? |
 | Buyer | Students hunting fests | Clubs + college + sponsors (students stay free) |
 | Demand | Existing event-goers | Trust, footfall proof, official guest lists |
 | Trade-off | More features vs lower price | Trust + ops without a noisy feed |
-| Uncooked trap | “Luma for India” | Density in one campus, scanner + verified hosts |
+| Opportia trap | “Luma for India” | Density in one campus, scanner + verified hosts |
 
 **One-line strategy**
 
@@ -41,14 +41,14 @@ Rivals by job-to-be-done:
 | Pretty RSVP | Luma, Eventbrite |
 | Official lists | College ERP, Excel |
 
-Red-ocean behaviour Uncooked must stop:
+Red-ocean behaviour OPPORTIA must stop:
 
 - Fake scale (120+ campuses, 99.99% uptime, PCI-DSS)
 - Feature race: Aura, live chat, wallet passes, native app copy
 - Competing on take-rate before the door scanner exists
 - Homepage as an Instagram clone
 
-If positioning is “Luma for India,” Uncooked is in their ocean with less brand and less capital.
+If positioning is “Luma for India,” OPPORTIA is in their ocean with less brand and less capital.
 
 ---
 
@@ -70,7 +70,7 @@ New money: **colleges and sponsors paying for trust**, not students paying for a
 
 What to move vs typical tools:
 
-| Factor | Instagram | Unstop | Townscript | Uncooked if red | Uncooked if blue |
+| Factor | Instagram | Unstop | Townscript | Opportia if red | Opportia if blue |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Viral feed / noise | High | Med | Low | Med | **Low** |
 | Ticket take-rate as the story | n/a | Med | High | Tempting | **Low / free-first** |
@@ -164,6 +164,6 @@ Aura LLM, Pusher chat, recommendation-score theater, multi-PSP, wallet passes, �
 
 If a feature helps **Instagram-style discovery** more than **gate + dean + sponsor trust**, it is red ocean. Cut it.
 
-If a feature makes an unverified WhatsApp list look unsafe next to Uncooked, it is blue ocean. Build it.
+If a feature makes an unverified WhatsApp list look unsafe next to Opportia, it is blue ocean. Build it.
 
 Next engineering bets, in order: **scanner → verified-only listings → campus slug → event-to-job link.**

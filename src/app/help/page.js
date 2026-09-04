@@ -57,7 +57,7 @@ export default function HelpPage() {
     },
     {
       q: "Is there a fee to host free events?",
-      a: "Absolutely not! Hosting free campus events on Uncooked is completely free forever. We only take a small, transparent platform fee on paid ticket sales."
+      a: "Absolutely not! Hosting free campus events on Opportia is completely free forever. We only take a small, transparent platform fee on paid ticket sales."
     }
   ];
 
@@ -183,9 +183,9 @@ export default function HelpPage() {
                 <MessageSquare className="w-4 h-4" />
                 Contact Form
               </a>
-              <a href="mailto:support@uncooked.in" className="btn-primary px-6 py-3 flex items-center justify-center gap-2">
+              <a href="mailto:support@opportia.in" className="btn-primary px-6 py-3 flex items-center justify-center gap-2">
                 <Mail className="w-4 h-4" />
-                support@uncooked.in
+                support@opportia.in
               </a>
             </div>
           </div>

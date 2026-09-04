@@ -32,10 +32,10 @@ async function hashPassword(password) {
 }
 
 async function main() {
-  console.log("🌱 Starting Uncooked Portal database seeding...");
+  console.log("🌱 Starting OPPORTIA Portal database seeding...");
 
   // 1. Seed Accounts
-  const seedEmails = ["admin@uncooked.edu", "host@uncooked.edu", "student@uncooked.edu"];
+  const seedEmails = ["admin@OPPORTIA.edu", "host@OPPORTIA.edu", "student@OPPORTIA.edu"];
   for (const email of seedEmails) {
     try {
       await prisma.$executeRaw`DELETE FROM auth.users WHERE LOWER(email) = ${email}`;
@@ -49,7 +49,7 @@ async function main() {
   const studentPassword = await hashPassword("StudentSecret123!");
 
   const superAdmin = await prisma.user.upsert({
-    where: { email: "admin@uncooked.edu" },
+    where: { email: "admin@OPPORTIA.edu" },
     update: {
       passwordHash: adminPassword,
       authUserId: null,
@@ -58,7 +58,7 @@ async function main() {
       emailVerified: new Date(),
     },
     create: {
-      email: "admin@uncooked.edu",
+      email: "admin@OPPORTIA.edu",
       name: "Super Admin",
       fullName: "Super Admin",
       passwordHash: adminPassword,
@@ -69,7 +69,7 @@ async function main() {
   });
 
   const hostUser = await prisma.user.upsert({
-    where: { email: "host@uncooked.edu" },
+    where: { email: "host@OPPORTIA.edu" },
     update: {
       passwordHash: hostPassword,
       authUserId: null,
@@ -78,7 +78,7 @@ async function main() {
       emailVerified: new Date(),
     },
     create: {
-      email: "host@uncooked.edu",
+      email: "host@OPPORTIA.edu",
       name: "Campus Cultural Board",
       fullName: "Campus Cultural Board",
       passwordHash: hostPassword,
@@ -89,7 +89,7 @@ async function main() {
   });
 
   const studentUser = await prisma.user.upsert({
-    where: { email: "student@uncooked.edu" },
+    where: { email: "student@OPPORTIA.edu" },
     update: {
       passwordHash: studentPassword,
       authUserId: null,
@@ -98,7 +98,7 @@ async function main() {
       emailVerified: new Date(),
     },
     create: {
-      email: "student@uncooked.edu",
+      email: "student@OPPORTIA.edu",
       name: "Alex Rivera",
       fullName: "Alex Rivera",
       passwordHash: studentPassword,
@@ -181,7 +181,7 @@ async function main() {
     {
       id: "opp-fullstack-intern",
       title: "Fullstack Engineering Intern (Next.js & Node)",
-      company: "Uncooked Labs",
+      company: "OPPORTIA Labs",
       type: "Internship",
       location: "Remote",
       stipend: "₹25,000 / month",

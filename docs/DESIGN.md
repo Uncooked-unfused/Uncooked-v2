@@ -1,4 +1,4 @@
-# Uncooked — Design system
+# OPPORTIA — Design system
 
 **Date:** 28 August 2026  
 **Source of truth in code:** `src/app/globals.css`  
@@ -10,7 +10,7 @@ Use this file when adding or changing UI. Match what already ships. Do not inven
 
 ## 1. Intent
 
-Uncooked should feel like a **calm campus operations tool**, not a noisy social feed.
+OPPORTIA should feel like a **calm campus operations tool**, not a noisy social feed.
 
 - Dark-first (Luma-adjacent, not a clone of Instagram).
 - Pink → orange → gold only for emphasis (CTAs, badges, focus).

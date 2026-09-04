@@ -490,7 +490,7 @@ export default function EventsPage() {
                 ORGANIZING A CAMPUS EVENT?
               </span>
               <h3 className="text-2xl font-bold text-text-primary mt-1">
-                List your event on Uncooked in under 3 minutes
+                List your event on Opportia in under 3 minutes
               </h3>
               <p className="text-xs sm:text-sm text-text-secondary mt-1">
                 Get zero-noise ticketing, verified host status, and 100+ scans/min QR check-in app.

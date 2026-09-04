@@ -4,8 +4,8 @@ import { Shield, Lock, Server, CheckCircle2, Activity } from "lucide-react";
 import { LEGAL } from "@/server/config/legal";
 
 export const metadata = {
-  title: "Security | Uncooked",
-  description: "How Uncooked protects accounts and personal data.",
+  title: "Security | Opportia",
+  description: "How OPPORTIA protects accounts and personal data.",
 };
 
 export default function SecurityPage() {
@@ -64,7 +64,7 @@ export default function SecurityPage() {
                   <h3 className="text-lg font-bold text-white">Payments</h3>
                 </div>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  Uncooked is not PCI-DSS certified and does not process cards on this version. When checkout is enabled, we will use a hosted payment partner so card data never touches our servers (PCI SAQ A model). Until then, do not send card numbers to us.
+                  OPPORTIA is not PCI-DSS certified and does not process cards on this version. When checkout is enabled, we will use a hosted payment partner so card data never touches our servers (PCI SAQ A model). Until then, do not send card numbers to us.
                 </p>
               </div>
               <div className="p-8 rounded-2xl border border-[var(--border-subtle)] bg-[#111]">

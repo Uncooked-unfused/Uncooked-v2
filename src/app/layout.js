@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Uncooked Portal: Delightful Campus Events Start Here",
+  title: "Opportia Portal: Delightful Campus Events Start Here",
   description:
     "The enterprise-grade zero-noise operating system for student events, campus ecosystems, host verification and infrastructure telemetry. Discover, create, and manage events effortlessly.",
   keywords: [
@@ -32,15 +32,15 @@ export const metadata = {
     "QR check-in",
   ],
   openGraph: {
-    title: "Uncooked Portal: Delightful Campus Events Start Here",
+    title: "Opportia Portal: Delightful Campus Events Start Here",
     description:
-      "From run clubs to launch parties, Uncooked makes every event feel effortless.",
+      "From run clubs to launch parties, Opportia makes every event feel effortless.",
     type: "website",
-    siteName: "Uncooked Portal",
+    siteName: "Opportia Portal",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Uncooked Portal",
+    title: "Opportia Portal",
     description:
       "The zero-noise operating system for campus events.",
   },

@@ -15,7 +15,7 @@ const RIBBON_1_ITEMS = [
 ];
 
 const RIBBON_2_ITEMS = [
-  "Uncooked OS Platform",
+  "OPPORTIA OS Platform",
   "Zero-Lag Event Ticketing",
   "Campus Ecosystem Engine",
   "Automated Host Verification",

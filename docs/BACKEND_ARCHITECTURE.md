@@ -1,8 +1,8 @@
-# Uncooked Portal — Canonical Backend Architecture & Implementation Spec
+# Opportia Portal — Canonical Backend Architecture & Implementation Spec
 
 | Field | Value |
 | :--- | :--- |
-| **Title** | Uncooked Portal Backend Architecture |
+| **Title** | Opportia Portal Backend Architecture |
 | **Document ID** | `UNC-BE-ARCH-2026-08` |
 | **Author** | Engineering (systems architecture) |
 | **Date** | 2026-08-26 |
@@ -10,7 +10,7 @@
 | **Status** | Draft |
 | **Audience** | Senior engineers implementing `src/server` and `src/app/api` |
 | **Scope** | Production backend for ~100,000 registered campus users |
-| **Repo truth** | `H:\uncooked` is frontend-only today. `README.md` is product vision, not implemented code. |
+| **Repo truth** | `H:\OPPORTIA` is frontend-only today. `README.md` is product vision, not implemented code. |
 | **Wins over** | `README.md` and public marketing copy wherever they conflict. Public pages are updated in PR 16. |
 
 This file is the **contract**. Implementers must not invent alternate envelopes, auth schemes, Redis key shapes, Lua scripts, or Prisma models. If a product question is not in [Open Questions](#open-questions), use the [Key Decisions](#key-decisions) default.
@@ -19,7 +19,7 @@ This file is the **contract**. Implementers must not invent alternate envelopes,
 
 ## Overview
 
-Uncooked Portal is a campus events / host verification / opportunities / ticketing operating system. The Git repo at `H:\uncooked` currently ships a Next.js 16 App Router + React 19 + Tailwind 4 **UI only**:
+Opportia Portal is a campus events / host verification / opportunities / ticketing operating system. The Git repo at `H:\OPPORTIA` currently ships a Next.js 16 App Router + React 19 + Tailwind 4 **UI only**:
 
 - No `prisma/` schema, no `src/app/api`, no `src/server`, no `src/middleware.js`, no Auth.js config.
 - `src/app/login/page.js` is a stub (`TODO: Integrate authentication` + `setTimeout`). `src/app/signup/page.js` has a `setTimeout` redirect to `/dashboard` and **no TODO comment**.
@@ -274,7 +274,7 @@ sequenceDiagram
 ### Target tree (new — none of these exist today)
 
 ```text
-H:\uncooked\
+H:\OPPORTIA\
 ├── prisma/
 │   ├── schema.prisma
 │   ├── seed.js
@@ -447,20 +447,20 @@ Redis: `SET idem:{sha256(userId|route|key)} {status,body} NX EX 86400`. Missing 
 cookies: {
   sessionToken: {
     name: process.env.NODE_ENV === "production"
-      ? "__Host-uncooked.session-token"
-      : "uncooked.session-token",
+      ? "__Host-OPPORTIA.session-token"
+      : "OPPORTIA.session-token",
     options: { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" },
   },
   csrfToken: {
     name: process.env.NODE_ENV === "production"
-      ? "__Host-uncooked.csrf-token"
-      : "uncooked.csrf-token",
+      ? "__Host-OPPORTIA.csrf-token"
+      : "OPPORTIA.csrf-token",
     options: { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" },
   },
   callbackUrl: {
     name: process.env.NODE_ENV === "production"
-      ? "__Secure-uncooked.callback-url"
-      : "uncooked.callback-url",
+      ? "__Secure-OPPORTIA.callback-url"
+      : "OPPORTIA.callback-url",
     options: { sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" },
   },
 }
@@ -1925,7 +1925,7 @@ Unchanged state machine. Approve transaction: application APPROVED, `User.role=O
 
 Mismatch → `400 VALIDATION_ERROR`.
 
-**v1 merchant of record:** Uncooked captures 100%. Host payouts are **manual T+N** (admin CSV + bank). Stripe Connect / Razorpay Route = **v1.1**. Paid public launch is allowed with MoR + documented fee (from `/help`: small platform fee). `GET /api/organizer/payouts` is a real route: v1 returns `{ batches: [], nextPayout: "T+7 manual", merchantOfRecord: true }`. `PayoutBatch` table is v1.1.
+**v1 merchant of record:** OPPORTIA captures 100%. Host payouts are **manual T+N** (admin CSV + bank). Stripe Connect / Razorpay Route = **v1.1**. Paid public launch is allowed with MoR + documented fee (from `/help`: small platform fee). `GET /api/organizer/payouts` is a real route: v1 returns `{ batches: [], nextPayout: "T+7 manual", merchantOfRecord: true }`. `PayoutBatch` table is v1.1.
 
 **Adapters** (`paymentService.createCheckout(registrationId)`):
 
@@ -2381,7 +2381,7 @@ New runtime not justified. **Chosen: magic-byte sniff; KYC blocked until CLEAN o
 ### Mandatory controls
 
 - TLS 1.3, AES-256 at rest (Neon + R2), residency ap-south-1.
-- HttpOnly Secure SameSite=Lax `__Host-uncooked.session-token`.
+- HttpOnly Secure SameSite=Lax `__Host-OPPORTIA.session-token`.
 - CSRF: Origin exact `APP_URL`, reject `null`.
 - PBAC every mutate; JWT + denylist + `ver`.
 - **Online HMAC server-only. Offline: manifest + Ed25519 pubkey.**
@@ -2488,7 +2488,7 @@ Staged: seed admin + TOTP → one club **free** events with **`SYS_PAYMENTS` kil
 
 1. **Modular Next.js monolith**, not a split service. Check-in SLO miss → optional Fly TCP worker, not a rewrite.
 2. **Neon Postgres ap-south-1**, not Supabase.
-3. **Auth.js v5 JWT only.** No Prisma `Session`. Account + VerificationToken remain. This-device view + revoke-all via `tokenVersion`. Cookie names `__Host-uncooked.session-token` (prod). Middleware checks denylist **and** `ver`.
+3. **Auth.js v5 JWT only.** No Prisma `Session`. Account + VerificationToken remain. This-device view + revoke-all via `tokenVersion`. Cookie names `__Host-OPPORTIA.session-token` (prod). Middleware checks denylist **and** `ver`.
 4. **Argon2id**, not scrypt.
 5. **Notifications poll 45s.** No SSE, no SUBSCRIBE from Vercel, Pusher deferred.
 6. **Currency is destiny** (INR=Razorpay, else Stripe). Ignore client provider. **Platform merchant of record** + manual T+N payouts. Connected accounts v1.1. Allowlist `successUrl` to `APP_URL`.
@@ -2526,10 +2526,10 @@ Region, PSP routing, chat, offline crypto, MFA, residency, MoR, poll vs SSE, cap
 
 ## References
 
-- UI: `H:\uncooked\src\app\**`, `H:\uncooked\src\components\**`
-- Vision only: `H:\uncooked\README.md`
+- UI: `H:\OPPORTIA\src\app\**`, `H:\OPPORTIA\src\components\**`
+- Vision only: `H:\OPPORTIA\README.md`
 - Claims to **correct** in PR 16: `security/page.js` (99.99% / PCI), `help/page.js` (.edu / native app), `host/page.js` (SMS / wallet)
-- Stack pins: `H:\uncooked\package.json`
+- Stack pins: `H:\OPPORTIA\package.json`
 - OWASP ASVS, Password Storage (Argon2id), DPDP Act 2023, PCI SAQ A
 
 ---

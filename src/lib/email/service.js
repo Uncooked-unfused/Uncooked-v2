@@ -2,8 +2,8 @@ import { Resend } from "resend";
 import nodemailer from "nodemailer";
 import { escapeHtml, safeHttpsUrl } from "@/server/security/html";
 
-const FROM_EMAIL = process.env.SMTP_FROM || process.env.EMAIL_FROM || "UNCOOKED <support@uncooked.in>";
-const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || "support@uncooked.in";
+const FROM_EMAIL = process.env.SMTP_FROM || process.env.EMAIL_FROM || "Opportia <support@opportia.in>";
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || "support@opportia.in";
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000").replace(/\/$/, "");
 
 // Helper to wrap content in a unified modern dark email template
@@ -121,7 +121,7 @@ function buildEmailTemplate({ title, preheader, bodyHtml, actionButton }) {
       </p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Uncooked Portal. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} Opportia Portal. All rights reserved.</p>
       <p><a href="${APP_URL}/privacy">Privacy Policy</a> &bull; <a href="${APP_URL}/help">Support Desk</a></p>
     </div>
   </div>
@@ -204,9 +204,9 @@ export async function sendVerificationEmail({ email, name, token, verificationUr
   const url = verificationUrl || `${APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
   
   const html = buildEmailTemplate({
-    title: "Verify Your Email Address - Uncooked",
+    title: "Verify Your Email Address - OPPORTIA",
     bodyHtml: `
-      <h1>Welcome to Uncooked, ${name || "Creator"}! 🎉</h1>
+      <h1>Welcome to Opportia, ${name || "Creator"}! 🎉</h1>
       <p>Please verify your email address to unlock full access to events, organizer applications, and campus opportunities.</p>
       <div class="code-box">${token.slice(0, 6).toUpperCase()}</div>
       <p>Click the button below to verify your account instantly. This link expires in 24 hours.</p>
@@ -218,7 +218,7 @@ export async function sendVerificationEmail({ email, name, token, verificationUr
 
   return sendEmail({
     to: email,
-    subject: "Verify Your Email Address — Uncooked Portal",
+    subject: "Verify Your Email Address — Opportia Portal",
     html,
     text,
   });
@@ -231,7 +231,7 @@ export async function sendPasswordResetEmail({ email, name, token, resetUrl }) {
   const url = resetUrl || `${APP_URL}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
   const html = buildEmailTemplate({
-    title: "Reset Your Password - Uncooked",
+    title: "Reset Your Password - OPPORTIA",
     bodyHtml: `
       <h1>Password Reset Request 🔐</h1>
       <p>Hi ${name || "there"}, we received a request to reset the password for your account associated with <strong>${email}</strong>.</p>
@@ -244,7 +244,7 @@ export async function sendPasswordResetEmail({ email, name, token, resetUrl }) {
 
   return sendEmail({
     to: email,
-    subject: "Reset Your Password — Uncooked Portal",
+    subject: "Reset Your Password — Opportia Portal",
     html,
     text,
   });
@@ -292,7 +292,7 @@ export async function sendSupportTicketNotification({ to, ticketId, subject, cat
 export async function sendAdminBroadcastEmail({ to, subject, message, mediaUrl, senderName }) {
   const safeMedia = safeHttpsUrl(mediaUrl);
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
-  const safeSender = escapeHtml(senderName || "Uncooked Admin");
+  const safeSender = escapeHtml(senderName || "Opportia Admin");
   const mediaHtml = safeMedia
     ? `
     <div style="margin: 20px 0; text-align: center;">
@@ -353,7 +353,7 @@ export async function sendContactNotification({ name, email, category, message }
   });
 
   const userHtml = buildEmailTemplate({
-    title: "We Received Your Message - Uncooked",
+    title: "We Received Your Message - OPPORTIA",
     bodyHtml: `
       <h1>We've Got Your Message, ${safeName}!</h1>
       <p>Thank you for reaching out regarding <strong>${safeCategory}</strong>. Our team has received your message and will get back to you within 24 hours.</p>
@@ -366,7 +366,7 @@ export async function sendContactNotification({ name, email, category, message }
 
   return sendEmail({
     to: email,
-    subject: "We received your message — Uncooked Portal",
+    subject: "We received your message — Opportia Portal",
     html: userHtml,
     text: `Hi ${name},\n\nWe received your message regarding ${category} and will reply shortly!`,
   });

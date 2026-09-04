@@ -1,9 +1,9 @@
-# Uncooked — Security Architecture
+# OPPORTIA — Security Architecture
 
-**Product:** Uncooked campus events platform  
+**Product:** OPPORTIA campus events platform  
 **Owner:** Engineering  
 **Updated:** 2 September 2026  
-**Repo:** [Uncooked-unfused/Uncooked-v2](https://github.com/Uncooked-unfused/Uncooked-v2)
+**Repo:** [OPPORTIA-unfused/OPPORTIA-v2](https://github.com/OPPORTIA-unfused/OPPORTIA-v2)
 
 **Related docs**
 
@@ -14,7 +14,7 @@
 | [docs/DESIGN.md](./docs/DESIGN.md) | UI trust rules (no fake claims, no leaked PII) |
 | [docs/BLUE_OCEAN.md](./docs/BLUE_OCEAN.md) | Product bets that security must not contradict |
 
-This file is the **map of how Uncooked is secured end-to-end**: pages, buttons/actions, APIs, rate limits, cookies, headers, tickets, and data rights. If code and this doc disagree, **fix the code, then update this doc in the same PR**.
+This file is the **map of how OPPORTIA is secured end-to-end**: pages, buttons/actions, APIs, rate limits, cookies, headers, tickets, and data rights. If code and this doc disagree, **fix the code, then update this doc in the same PR**.
 
 ---
 
@@ -75,8 +75,8 @@ Applied to all routes via `next.config.mjs`:
 | Control | Detail |
 | --- | --- |
 | Provider | NextAuth **Credentials** → JWT strategy |
-| Cookie (dev) | `uncooked.session-token` |
-| Cookie (prod) | `__Secure-uncooked.session-token` |
+| Cookie (dev) | `OPPORTIA.session-token` |
+| Cookie (prod) | `__Secure-OPPORTIA.session-token` |
 | Flags | `httpOnly`, `sameSite: lax`, `secure` in production |
 | Max age | **7 days** (`SESSION_MAX_AGE_SEC`) |
 | Password hash | **scrypt** only (`N=16384`); reject plaintext / unknown formats |
@@ -102,7 +102,7 @@ Applied to all routes via `next.config.mjs`:
 | Other mutating `/api/*` (not auth, not contact) | Session required or **401** |
 | `/api/contact` | Public mutation (still CSRF + rate limited in handler) |
 
-Missing / weak `NEXTAUTH_SECRET` must **fail closed** (do not skip `/admin` page checks). Hardening lives in PR [#8](https://github.com/Uncooked-unfused/Uncooked-v2/pull/8).
+Missing / weak `NEXTAUTH_SECRET` must **fail closed** (do not skip `/admin` page checks). Hardening lives in PR [#8](https://github.com/OPPORTIA-unfused/OPPORTIA-v2/pull/8).
 
 Login `redirectTo` must be a **same-app relative path** only (block `//evil.com`, schemes, backslashes). Use `safeInternalPath` when that helper is merged.
 
@@ -354,9 +354,9 @@ Before every release, complete the checkbox gate in [docs/SECURITY_TEST.md](./do
 
 | Item | Status |
 | --- | --- |
-| Remove hardcoded NextAuth secret fallback; middleware fail-closed | PR [#8](https://github.com/Uncooked-unfused/Uncooked-v2/pull/8) |
+| Remove hardcoded NextAuth secret fallback; middleware fail-closed | PR [#8](https://github.com/OPPORTIA-unfused/OPPORTIA-v2/pull/8) |
 | Open-redirect hardening + erase password step-up + FOR UPDATE capacity | PR #8 |
-| Aura chat-only / honest ideology | PR [#9](https://github.com/Uncooked-unfused/Uncooked-v2/pull/9) |
+| Aura chat-only / honest ideology | PR [#9](https://github.com/OPPORTIA-unfused/OPPORTIA-v2/pull/9) |
 | Shared Redis rate limits | Not started |
 | CSP nonces / drop `unsafe-eval` | Not started |
 | Expiring ticket HMAC + door scanner burn | Product phase 1 |

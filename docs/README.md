@@ -1,4 +1,4 @@
-# Uncooked Portal 🚀
+# Opportia Portal 🚀
 
 <p align="center">
   <em>The Enterprise-Grade Zero-Noise Operating System for Student Events, Campus Ecosystems, Host Verification & Infrastructure Telemetry.</em>
@@ -44,10 +44,10 @@
 
 ## 1. Executive Summary & Product Vision
 
-**Uncooked Portal** is a production-grade, full-stack campus event operating system built on Next.js 16 (App Router), React 19, and PostgreSQL (hosted on Supabase). It bridges the operational gaps between students, campus event organizers, academic clubs, corporate opportunity providers, and enterprise platform administrators.
+**Opportia Portal** is a production-grade, full-stack campus event operating system built on Next.js 16 (App Router), React 19, and PostgreSQL (hosted on Supabase). It bridges the operational gaps between students, campus event organizers, academic clubs, corporate opportunity providers, and enterprise platform administrators.
 
 ### Core Philosophy & Technical Objectives
-1. **Zero-Noise Content Discovery**: Modern social platforms suffer from high algorithmic noise. Uncooked utilizes a multi-vector heuristic recommendation engine ($S = 0.40I + 0.25T + 0.20E + 0.15P$) that prioritizes student interests and historical interactions over viral noise.
+1. **Zero-Noise Content Discovery**: Modern social platforms suffer from high algorithmic noise. OPPORTIA utilizes a multi-vector heuristic recommendation engine ($S = 0.40I + 0.25T + 0.20E + 0.15P$) that prioritizes student interests and historical interactions over viral noise.
 2. **Operator-Grade Host & Event Tooling**: Event organizers are provided with single-pane management consoles supporting live check-ins, tier pricing, promo discounts, capacity waitlists, and real-time bulletin pushes.
 3. **Enterprise Super Admin Controls**: Platform super-administrators can execute multi-select batch moderation, monitor live CPU/memory telemetry, declare system incidents, trigger emergency kill-switches, and perform automated audit trails.
 
@@ -55,7 +55,7 @@
 
 ## 2. System Architecture & Core Design Patterns
 
-Uncooked is architected as a Next.js App Router full-stack application where the UI components, route handlers, server controllers, and database access layers coexist within a single deployment unit.
+OPPORTIA is architected as a Next.js App Router full-stack application where the UI components, route handlers, server controllers, and database access layers coexist within a single deployment unit.
 
 ### High-Level Architecture Diagram
 
@@ -146,7 +146,7 @@ sequenceDiagram
 ## 4. Project Directory & File Structure
 
 ```text
-Uncooked/
+OPPORTIA/
 ├── .env                                # Environment variables template
 ├── .env.local                          # Local environment secrets override
 ├── AGENTS.md                           # Developer guidelines & optimization rules
@@ -361,7 +361,7 @@ Tracks historical real-time system performance.
 
 ## 6. Authentication, Authorization & PBAC Security
 
-Uncooked enforces strict, multi-layered security using NextAuth.js JWT tokens combined with Policy-Based Access Control (PBAC) validated directly against PostgreSQL.
+OPPORTIA enforces strict, multi-layered security using NextAuth.js JWT tokens combined with Policy-Based Access Control (PBAC) validated directly against PostgreSQL.
 
 ```mermaid
 graph TD
@@ -569,7 +569,7 @@ export function DigitalTicketPass({ registration, event, user }) {
 
 ## 9. Real-Time WebSockets & Notification Subsystem
 
-Uncooked relies on **Pusher** for real-time WebSocket communication across public event chatrooms, organizer announcements, and user notifications.
+OPPORTIA relies on **Pusher** for real-time WebSocket communication across public event chatrooms, organizer announcements, and user notifications.
 
 ### WebSocket Architecture
 
@@ -962,7 +962,7 @@ NEXT_PUBLIC_PUSHER_CLUSTER="ap2"
 RESEND_API_KEY="re_123456789_abcdefg"
 SMTP_HOST="smtp.gmail.com"
 SMTP_PORT="465"
-SMTP_USER="uncooked.official@gmail.com"
+SMTP_USER="OPPORTIA.official@gmail.com"
 SMTP_PASS="app_specific_password"
 
 # -----------------------------------------------------------------------------
@@ -1098,7 +1098,7 @@ To maintain sub-50ms query responses under high request volumes, indexing is enf
 
 ## 21. Governance, Auditing & License
 
-Uncooked Portal is maintained by the unfused-co core engineering team.
+Opportia Portal is maintained by the unfused-co core engineering team.
 
 * **Audit Logs**: All administrative actions are recorded in `AuditLog` table.
 * **Support Contact**: `unfusedz.admin@gmail.com`

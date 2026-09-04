@@ -1,4 +1,4 @@
-# Uncooked environment variables
+# OPPORTIA environment variables
 
 **Audience:** engineering + deploy  
 **Updated:** 2 September 2026  
@@ -14,7 +14,7 @@ Provide secrets later via your secret manager / Vercel dashboard. This file is t
 
 | Variable | Example / shape | Used for |
 | --- | --- | --- |
-| `NEXTAUTH_URL` | `https://app.uncooked.dev` | Canonical site URL, CSRF Origin allowlist, NextAuth |
+| `NEXTAUTH_URL` | `https://app.OPPORTIA.dev` | Canonical site URL, CSRF Origin allowlist, NextAuth |
 | `NEXT_PUBLIC_APP_URL` | same as above | Client + CSRF allowlist (must match browser origin) |
 | `NEXTAUTH_SECRET` | 64+ random hex/base64 | JWT signing. Min 32 chars. Ban: `dev_secret`, `change-me`, `fallback` |
 | `TICKET_HMAC_SECRET` | 64+ random, **≠** `NEXTAUTH_SECRET` | QR / pass HMAC |
@@ -52,10 +52,10 @@ Without Sentry, errors still go to server logs only.
 
 | Variable | Default-ish | Used for |
 | --- | --- | --- |
-| `LEGAL_ENTITY_NAME` | `Uncooked` | Privacy / terms copy |
+| `LEGAL_ENTITY_NAME` | `OPPORTIA` | Privacy / terms copy |
 | `GRIEVANCE_OFFICER_NAME` | `Grievance Officer` | DPDP grievance |
-| `GRIEVANCE_EMAIL` | `support@uncooked.in` | Must be a real monitored inbox in prod |
-| `SUPPORT_EMAIL` | `support@uncooked.in` | Contact / support |
+| `GRIEVANCE_EMAIL` | `support@opportia.in` | Must be a real monitored inbox in prod |
+| `SUPPORT_EMAIL` | `support@opportia.in` | Contact / support |
 
 ---
 
@@ -66,7 +66,7 @@ Without Sentry, errors still go to server logs only.
 | `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` | `true` only with real Google OAuth credentials |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth |
 | `RESEND_API_KEY` | Transactional email (password reset in prod) |
-| `EMAIL_FROM` | e.g. `Uncooked <noreply@yourdomain>` |
+| `EMAIL_FROM` | e.g. `OPPORTIA <noreply@yourdomain>` |
 | `VERIFIED_HOSTS_ONLY` | `true` = public event list only shows events from ORGANIZER/SUPER_ADMIN creators |
 | `APP_URL` | Alias accepted by CSRF allowlist if set |
 

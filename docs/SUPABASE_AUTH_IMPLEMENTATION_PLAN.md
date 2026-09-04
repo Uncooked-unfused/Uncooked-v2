@@ -1,6 +1,6 @@
 # 🛡️ Supabase Authentication & RLS Implementation Strategy (V2 Architecture)
 
-This document provides a technical breakdown and execution roadmap for adopting **Supabase Auth** and **PostgreSQL Row Level Security (RLS)** in the V2 codebase, following the core principles defined in [`docs/SUPABASE_AUTHENTICATION.md`](file:///mnt/8A7C87E87C87CCFF/CODESPACE/Uncooked/Uncooked%20v2/docs/SUPABASE_AUTHENTICATION.md).
+This document provides a technical breakdown and execution roadmap for adopting **Supabase Auth** and **PostgreSQL Row Level Security (RLS)** in the V2 codebase, following the core principles defined in [`docs/SUPABASE_AUTHENTICATION.md`](file:///mnt/8A7C87E87C87CCFF/CODESPACE/OPPORTIA/OPPORTIA%20v2/docs/SUPABASE_AUTHENTICATION.md).
 
 ---
 

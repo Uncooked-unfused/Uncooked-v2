@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const KEY = "uncooked_cookie_ack_v1";
+const KEY = "OPPORTIA_cookie_ack_v1";
 
 export default function CookieNotice() {
   const [visible, setVisible] = useState(false);

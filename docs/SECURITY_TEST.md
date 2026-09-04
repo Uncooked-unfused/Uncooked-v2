@@ -1,7 +1,7 @@
-# Uncooked — Security Test & Rules (follow every time)
+# OPPORTIA — Security Test & Rules (follow every time)
 
 **Owner:** Engineering  
-**Product:** Uncooked campus events platform  
+**Product:** OPPORTIA campus events platform  
 **Updated:** 27 August 2026  
 **Related:** [IT_ACT_INDIA.md](./IT_ACT_INDIA.md), [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)
 
@@ -37,7 +37,7 @@ Harness: `tests/security/unit.test.mjs` and `tests/security/http-suite.mjs`.
 ## 2. Authentication
 
 - One session system: NextAuth JWT cookies (HTTP-only, `SameSite=Lax`, `Secure` in production).
-- Cookie names: `uncooked.session-token` locally; `__Secure-uncooked.session-token` in production.
+- Cookie names: `OPPORTIA.session-token` locally; `__Secure-OPPORTIA.session-token` in production.
 - Max session age: **7 days**.
 - Login failures: same message (`INVALID_CREDENTIALS`). Never leak “user exists”, Prisma, or lock status.
 - After **8** failed logins, lock **30 minutes**.

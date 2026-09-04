@@ -2,17 +2,17 @@ export const TERMS_VERSION = "2026-08-27";
 export const PRIVACY_VERSION = "2026-08-27";
 
 export const LEGAL = {
-  productName: "Uncooked",
-  entityName: process.env.LEGAL_ENTITY_NAME || "Uncooked",
+  productName: "Opportia",
+  entityName: process.env.LEGAL_ENTITY_NAME || "Opportia",
   country: "India",
   governingLaw: "the laws of India",
   grievanceOfficerName: process.env.GRIEVANCE_OFFICER_NAME || "Grievance Officer",
-  grievanceEmail: process.env.GRIEVANCE_EMAIL || "support@uncooked.in",
-  supportEmail: process.env.SUPPORT_EMAIL || "support@uncooked.in",
+  grievanceEmail: process.env.GRIEVANCE_EMAIL || "support@opportia.in",
+  supportEmail: process.env.SUPPORT_EMAIL || "support@opportia.in",
   termsVersion: TERMS_VERSION,
   privacyVersion: PRIVACY_VERSION,
   dataFiduciaryNotice:
-    "Uncooked is the data fiduciary for personal data collected through this website under the Digital Personal Data Protection Act, 2023.",
+    "Opportia is the data fiduciary for personal data collected through this website under the Digital Personal Data Protection Act, 2023.",
 };
 
 export const ALLOWED_ROLES = Object.freeze(["USER", "ORGANIZER", "SUPER_ADMIN"]);

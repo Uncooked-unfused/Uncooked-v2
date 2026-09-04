@@ -118,7 +118,7 @@ export default function AboutPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-text-secondary text-base sm:text-lg leading-relaxed"
             >
-              Uncooked was built to eliminate fragmented spreadsheets, long check in queues, and manual follow ups for student organizers, creating a seamless platform for every campus event.
+              Opportia was built to eliminate fragmented spreadsheets, long check in queues, and manual follow ups for student organizers, creating a seamless platform for every campus event.
             </motion.p>
           </div>
 
@@ -215,7 +215,7 @@ export default function AboutPage() {
           <div className="mb-24">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-xs font-bold tracking-[0.2em] uppercase text-[var(--accent-orange)] mb-3">
-                THE TEAM BEHIND UNCOOKED
+                THE TEAM BEHIND OPPORTIA
               </h2>
               <h3 className="text-2xl sm:text-3xl font-bold text-text-primary">
                 Built by builders, for student leaders
@@ -257,7 +257,7 @@ export default function AboutPage() {
           {/* CTA Banner */}
           <div className="rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-2xl">
             <h3 className="text-2xl sm:text-4xl font-extrabold mb-4 leading-tight">
-              Ready to bring Uncooked to your campus?
+              Ready to bring OPPORTIA to your campus?
             </h3>
             <p className="text-sm sm:text-base text-white/90 max-w-xl mx-auto mb-8 leading-relaxed">
               Join 500+ student organizers hosting zero-noise events today.

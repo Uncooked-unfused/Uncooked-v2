@@ -58,7 +58,7 @@ export default function EcosystemPartners() {
               boxShadow: "0 10px 30px -5px rgba(236, 72, 153, 0.4)",
             }}
           >
-            Join Uncooked
+            Join OPPORTIA
           </Link>
           <Link
             href="/dashboard"

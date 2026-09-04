@@ -97,13 +97,13 @@ export default function SignupPage() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#f472b6] to-[#f97316] flex items-center justify-center shadow-[0_0_20px_rgba(244,114,182,0.3)]">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">uncooked</span>
+            <span className="text-2xl font-bold text-white tracking-tight">OPPORTIA</span>
           </Link>
 
           {/* Headers */}
           <div className="mb-6">
             <h1 className="text-[28px] sm:text-[36px] leading-tight font-bold text-white mb-2 tracking-tight">
-              Get Started with Uncooked
+              Get Started with Opportia
             </h1>
             <p className="text-[14px] text-gray-400 font-medium">
               Create your account to host, register, and discover campus events
@@ -309,7 +309,7 @@ export default function SignupPage() {
              <div className="flex-1 relative w-full h-full mt-12">
                <Image 
                  src="/events/EVENT IMAGE.jpg"
-                 alt="Uncooked Event Platform"
+                 alt="OPPORTIA Event Platform"
                  fill
                  className="object-cover"
                  priority
