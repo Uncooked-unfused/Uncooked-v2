@@ -2,12 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import LazyAgentWidget from "@/components/ui/LazyAgentWidget";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import Link from "next/link";
 import Image from "next/image";
+
+const LightRays = dynamic(() => import("@/components/ui/LightRays"), {
+  ssr: false,
+});
 import { 
   Search, 
   Calendar, 
@@ -143,6 +149,7 @@ const COMPLETED_EVENTS = [
 const CATEGORIES = ["All", "Hackathons", "Cultural Fests", "Workshops", "Sports & Gaming", "Parties & Socials"];
 
 export default function EventsPage() {
+  const { theme } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeModalEvent, setActiveModalEvent] = useState(null);
@@ -221,6 +228,23 @@ export default function EventsPage() {
       <main className="min-h-screen bg-primary transition-colors duration-300 pt-28 pb-24 relative overflow-hidden">
         {/* Background Ambient Glows */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[850px] h-[380px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none" />
+
+        {/* LightRays WebGL shader animation */}
+        <LightRays
+          raysOrigin="top-center"
+          raysColor={theme === "light" ? "#ea580c" : "#f97316"}
+          raysSpeed={1.0}
+          lightSpread={0.9}
+          rayLength={2.0}
+          pulsating={true}
+          noiseAmount={0.04}
+          distortion={0.06}
+          fadeDistance={1.2}
+          followMouse={true}
+          mouseInfluence={0.12}
+          lightMode={theme === "light"}
+          className={theme === "light" ? "opacity-30" : "opacity-45"}
+        />
 
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
