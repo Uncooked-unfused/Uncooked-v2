@@ -181,25 +181,42 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, [status]);
 
-  // Fetch live campus events catalog
+  // Fetch live campus events from production API (shape: { success, data: { events: [] } })
   useEffect(() => {
     fetch("/api/events")
       .then((res) => res.json())
       .then((payload) => {
-        if (payload.success && Array.isArray(payload.data) && payload.data.length > 0) {
-          const rows = payload.data;
+        const rows = Array.isArray(payload?.data?.events)
+          ? payload.data.events
+          : Array.isArray(payload?.data)
+            ? payload.data
+            : [];
+        if (payload.success && rows.length > 0) {
           setLiveEvents(
             rows.map((row) => ({
               id: row.id,
               title: row.title,
               category: row.category || row.type || "Events",
               host: row.hostName || "Campus Host",
-              date: row.date ? new Date(row.date).toLocaleDateString() : "",
-              time: row.date ? new Date(row.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "",
+              date: row.date
+                ? new Date(row.date).toLocaleDateString(undefined, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "",
+              time: row.date
+                ? new Date(row.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                : "",
               location: row.location,
-              price: row.ticketType === "Paid" ? `₹${row.price}` : "Free RSVP",
-              isFree: row.ticketType !== "Paid",
-              image: row.bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop",
+              price: row.ticketType === "Paid" || (row.price != null && Number(row.price) > 0)
+                ? `₹${row.price ?? 0}`
+                : "Free RSVP",
+              isFree: !(row.ticketType === "Paid" || (row.price != null && Number(row.price) > 0)),
+              image:
+                row.bannerUrl ||
+                "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=600&auto=format&fit=crop",
               attendees: `${row.spotsLeft ?? row.capacity ?? 0} spots left`,
             }))
           );

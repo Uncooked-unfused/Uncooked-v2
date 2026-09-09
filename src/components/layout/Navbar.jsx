@@ -18,6 +18,7 @@ import {
   Settings,
   ChevronDown,
   LayoutDashboard,
+  Calendar,
   CalendarPlus,
   ShieldCheck,
   Monitor,
@@ -38,7 +39,7 @@ export const AVATAR_OPTIONS = [
 export default function Navbar({ forceDarkTop = false }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const { data: session, status, signOut, refreshSession } = useSession();
   const supabase = createClient();
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
@@ -135,9 +136,19 @@ export default function Navbar({ forceDarkTop = false }) {
   const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+    try {
+      if (signOut) await signOut();
+      else await supabase.auth.signOut();
+    } catch {
+      /* ignore */
+    }
+    window.location.assign("/login");
   };
+
+  // Re-sync session when Navbar mounts (covers server-cookie login).
+  useEffect(() => {
+    refreshSession?.();
+  }, [refreshSession]);
 
   const displayName =
     userProfile?.fullName ||
@@ -352,7 +363,17 @@ export default function Navbar({ forceDarkTop = false }) {
                           <span>{t("nav.dashboard", "Dashboard")}</span>
                         </Link>
 
-                        {/* 2. View Profile */}
+                        {/* 2. Events */}
+                        <Link
+                          href="/events"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                          <span>{t("nav.events", "Events")}</span>
+                        </Link>
+
+                        {/* 3. View Profile */}
                         <Link
                           href="/profile"
                           onClick={() => setUserDropdownOpen(false)}
@@ -577,17 +598,32 @@ export default function Navbar({ forceDarkTop = false }) {
                       </div>
                     </div>
 
-                    {/* 3 Action Buttons */}
+                    {/* Account actions */}
                     <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1.5">
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setMobileOpen(false)}
+                        className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-xs"
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5" />
+                        <span>Dashboard</span>
+                      </Link>
+                      <Link
+                        href="/events"
+                        onClick={() => setMobileOpen(false)}
+                        className="btn-secondary w-full flex items-center justify-center gap-2 py-2.5 text-xs"
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>Events</span>
+                      </Link>
                       <Link
                         href="/profile"
                         onClick={() => setMobileOpen(false)}
-                        className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-xs"
+                        className="btn-secondary w-full flex items-center justify-center gap-2 py-2.5 text-xs"
                       >
                         <User className="w-3.5 h-3.5" />
                         <span>View Profile</span>
                       </Link>
-
                       <Link
                         href="/settings"
                         onClick={() => setMobileOpen(false)}
@@ -596,7 +632,6 @@ export default function Navbar({ forceDarkTop = false }) {
                         <Settings className="w-3.5 h-3.5" />
                         <span>Settings</span>
                       </Link>
-
                       <button
                         onClick={() => {
                           setMobileOpen(false);

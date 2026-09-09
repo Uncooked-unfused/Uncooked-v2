@@ -85,10 +85,9 @@ function LoginForm() {
         return;
       }
 
-      // Server set cookies — refresh client session so Navbar hides Login/Get Started.
+      // Server set cookies — hard navigate so provider remounts and Navbar hides Login/Get Started.
       await refreshSession?.();
-      router.push(redirectTo);
-      router.refresh();
+      window.location.assign(redirectTo);
     } catch (err) {
       setErrorMsg("Failed to log in. Please try again.");
       setLoading(false);
