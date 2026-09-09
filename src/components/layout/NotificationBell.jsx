@@ -98,7 +98,7 @@ export default function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-[min(92vw,360px)] max-h-[70vh] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated)] shadow-2xl z-[80]"
+            className="absolute right-0 mt-2 w-[min(92vw,360px)] max-h-[70vh] overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-elevated,#121216)] shadow-2xl z-[80]"
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-subtle)]">
               <p className="text-sm font-semibold text-[var(--text-primary)]">Notifications</p>
@@ -106,7 +106,7 @@ export default function NotificationBell() {
                 type="button"
                 disabled={unreadCount === 0}
                 onClick={() => markRead({ all: true })}
-                className="text-[11px] font-medium text-[var(--accent-orange)] disabled:opacity-40 flex items-center gap-1"
+                className="text-[11px] font-medium text-[var(--accent-orange)] disabled:opacity-40 flex items-center gap-1 cursor-pointer"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Mark all read

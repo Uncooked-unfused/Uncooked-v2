@@ -156,6 +156,7 @@ export default function Navbar({ forceDarkTop = false }) {
     { label: t("nav.opportunities", "Opportunities"), href: "/opportunities" },
     { label: t("nav.createEvent", "Host an Event"), href: "/host" },
     { label: t("footer.about", "About"), href: "/about" },
+    { label: "Help", href: "/help" },
     { label: t("footer.contact", "Contact"), href: "/contact" },
   ];
 
@@ -229,6 +230,14 @@ export default function Navbar({ forceDarkTop = false }) {
           {isLoggedIn ? (
             <div className="flex items-center gap-2.5">
               <NotificationBell />
+              {/* Quick Dashboard Link */}
+              <Link
+                href="/dashboard"
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-white/5 border border-white/10 text-white/90 flex items-center gap-2 hover:border-[var(--accent-orange)] transition-colors"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
+                <span>Dashboard</span>
+              </Link>
 
               {/* Profile Avatar Trigger & Dropdown Menu */}
               <div className="relative" ref={dropdownRef}>

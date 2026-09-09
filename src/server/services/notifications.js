@@ -135,7 +135,6 @@ export async function createInAppNotificationForUserIds({
 
   return { notification, recipientCount: users.length };
 }
-
 export async function listNotificationsForUser(userId, { limit = 20, cursor } = {}) {
   const take = Math.min(Math.max(Number(limit) || 20, 1), 50);
   const where = {
