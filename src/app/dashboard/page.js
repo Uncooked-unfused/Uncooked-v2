@@ -8,8 +8,9 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import TicketPassCard from "@/components/events/TicketPassCard";
+import { useTheme } from "@/components/theme/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import {
   Ticket,
   Briefcase,
@@ -26,6 +27,14 @@ import {
   Users,
   LogIn,
 } from "lucide-react";
+
+const PixelBlast = dynamic(
+  () => import("@/components/ui/PixelBlast"),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
 
 const QRCodeSVG = dynamic(
   () => import("qrcode.react").then((mod) => mod.QRCodeSVG),
@@ -131,10 +140,19 @@ function formatWhen(dateValue) {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [passes, setPasses] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Redirect unauthenticated guests to login
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/login?redirectTo=/dashboard");
+    }
+  }, [status, router]);
 
   // Live campus events & booking states
   const [liveEvents, setLiveEvents] = useState(LIVE_EVENTS_CATALOG);
@@ -257,55 +275,63 @@ export default function DashboardPage() {
     return registrations.some((reg) => reg.event?.id === eventId || reg.eventId === eventId);
   };
 
+  if (status === "loading" || status === "unauthenticated") {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-primary pt-28 pb-24 flex items-center justify-center">
+          <div className="flex items-center text-text-secondary gap-2.5">
+            <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-orange)]" />
+            <span className="text-sm font-medium">
+              {status === "loading" ? "Loading your dashboard..." : "Redirecting to sign in..."}
+            </span>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
-      <Navbar forceDarkTop />
+      <Navbar />
       <main className="min-h-screen bg-primary pt-28 pb-24 relative overflow-hidden">
+        {/* Interactive Orange PixelBlast Background */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <PixelBlast
+            variant="square"
+            pixelSize={3.5}
+            color={theme === "light" ? "#ea580c" : "#fb923c"}
+            patternScale={2.5}
+            patternDensity={1.1}
+            speed={0.4}
+            edgeFade={0.25}
+            transparent={true}
+            enableRipples={true}
+            className="w-full h-full opacity-70 dark:opacity-55"
+          />
+        </div>
+
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[850px] h-[320px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none" />
 
         <div className="max-w-[1150px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Header */}
           <div className="mb-8">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--accent-orange)] mb-2">
-              Student Console
-            </p>
             <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">
-              Welcome back, {name.split(" ")[0]}
+              {t("dashboard.title", "Student Console")}
             </h1>
             <p className="text-sm text-text-secondary mt-2">
-              {status === "authenticated"
-                ? `Signed in as ${session?.user?.email}. Browse live campus events, claim passes, and track applications.`
-                : "Browse live campus events and claim your verified ticket passes."}
+              {t("dashboard.subtitle", "Browse live campus events, claim passes, and track applications.")}
             </p>
           </div>
-
-          {/* Unauthenticated Guest Banner */}
-          {status === "unauthenticated" && !loading && (
-            <div className="mb-8 p-6 rounded-3xl bg-card border border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-base font-bold text-text-primary">Sign in to your Student Console</h3>
-                <p className="text-xs text-text-secondary mt-1">
-                  Log in with your campus account to claim verified ticket passes and access your applications.
-                </p>
-              </div>
-              <Link
-                href="/login?redirectTo=/dashboard"
-                className="btn-primary text-xs min-h-[44px] px-5 inline-flex items-center gap-2 shrink-0"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Log In Now</span>
-              </Link>
-            </div>
-          )}
 
           {isHost && (
             <div className="mb-6 p-4 rounded-2xl bg-card border border-border-subtle flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-text-secondary">
-                Host tools: scan attendee passes at the door with the pass scanner.
+                {t("nav.hostTools", "Host tools: scan attendee passes at the door with the pass scanner.")}
               </p>
               <Link href="/create" className="btn-secondary text-xs min-h-[40px] px-4 inline-flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-[var(--accent-orange)]" />
-                <span>Create Event</span>
+                <span>{t("nav.createEvent", "Create Event")}</span>
               </Link>
             </div>
           )}
@@ -314,7 +340,7 @@ export default function DashboardPage() {
 
           {loading ? (
             <div className="flex items-center justify-center py-20 text-text-secondary gap-2">
-              <Loader2 className="w-5 h-5 animate-spin" /> Loading your workspace
+              <Loader2 className="w-5 h-5 animate-spin" /> {t("common.loading", "Loading your workspace")}
             </div>
           ) : (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
@@ -324,17 +350,17 @@ export default function DashboardPage() {
                   <div className="p-5 rounded-3xl bg-card border border-border-subtle">
                     <Ticket className="w-4 h-4 text-[var(--accent-orange)] mb-3" />
                     <p className="text-2xl font-bold text-text-primary">{registrations.length}</p>
-                    <p className="text-xs text-text-secondary">Event passes</p>
+                    <p className="text-xs text-text-secondary">{t("dashboard.stats.passes", "Event passes")}</p>
                   </div>
                   <div className="p-5 rounded-3xl bg-card border border-border-subtle">
                     <Briefcase className="w-4 h-4 text-purple-400 mb-3" />
                     <p className="text-2xl font-bold text-text-primary">{apps.length}</p>
-                    <p className="text-xs text-text-secondary">Opportunity applications</p>
+                    <p className="text-xs text-text-secondary">{t("dashboard.stats.applications", "Opportunity applications")}</p>
                   </div>
                   <div className="p-5 rounded-3xl bg-card border border-border-subtle">
                     <ShieldCheck className="w-4 h-4 text-emerald-400 mb-3" />
-                    <p className="text-2xl font-bold text-text-primary">{host?.status || "None"}</p>
-                    <p className="text-xs text-text-secondary">Host verification</p>
+                    <p className="text-2xl font-bold text-text-primary">{host?.status || t("common.none", "None")}</p>
+                    <p className="text-xs text-text-secondary">{t("dashboard.stats.hostStatus", "Host verification")}</p>
                   </div>
                 </div>
               )}
@@ -344,17 +370,17 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
                   <div>
                     <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" /> Live Campus Events
+                      <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" /> {t("dashboard.liveEvents.title", "Live Campus Events")}
                     </h2>
                     <p className="text-xs text-text-secondary mt-1">
-                      RSVP and generate your official digital ticket pass directly from your student console.
+                      {t("dashboard.liveEvents.subtitle", "RSVP and generate your official digital ticket pass directly from your dashboard.")}
                     </p>
                   </div>
                   <Link
                     href="/events"
                     className="text-xs font-semibold text-[var(--accent-orange)] inline-flex items-center gap-1 hover:underline"
                   >
-                    View catalog page <ArrowRight className="w-3.5 h-3.5" />
+                    {t("events.hero.viewCatalog", "View catalog page")} <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
@@ -423,13 +449,13 @@ export default function DashboardPage() {
                             {alreadyClaimed ? (
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                                  <CheckCircle2 className="w-4 h-4" /> Pass Claimed
+                                  <CheckCircle2 className="w-4 h-4" /> {t("dashboard.liveEvents.passClaimed", "Pass Claimed")}
                                 </span>
                                 <Link
                                   href={`/events/${ev.id}`}
                                   className="text-[11px] font-semibold text-text-secondary hover:text-white"
                                 >
-                                  Details →
+                                  {t("common.details", "Details")} →
                                 </Link>
                               </div>
                             ) : (
@@ -439,7 +465,7 @@ export default function DashboardPage() {
                                 className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold transition-all active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                               >
                                 <Ticket className="w-3.5 h-3.5" />
-                                <span>Get Ticket Pass</span>
+                                <span>{t("dashboard.liveEvents.getTicket", "Get Ticket Pass")}</span>
                               </button>
                             )}
                           </div>
@@ -455,15 +481,15 @@ export default function DashboardPage() {
                 <section className="p-6 sm:p-8 rounded-3xl bg-card border border-border-subtle" id="passes-section">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="text-base font-bold text-text-primary flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-[var(--accent-orange)]" /> Your Active Passes ({registrations.length})
+                      <Calendar className="w-4 h-4 text-[var(--accent-orange)]" /> {t("dashboard.passes.title", "Your Active Passes")} ({registrations.length})
                     </h2>
                   </div>
                   {registrations.length === 0 ? (
                     <div className="text-center py-8 px-4 rounded-2xl bg-background/50 border border-border-subtle">
                       <Ticket className="w-8 h-8 text-text-secondary mx-auto mb-2 opacity-50" />
-                      <p className="text-sm font-semibold text-text-primary">No tickets claimed yet</p>
+                      <p className="text-sm font-semibold text-text-primary">{t("dashboard.passes.noPassesTitle", "No tickets claimed yet")}</p>
                       <p className="text-xs text-text-secondary mt-1">
-                        Select any live event above and click &quot;Get Ticket Pass&quot; to generate your digital entry pass.
+                        {t("dashboard.passes.noPasses", "Select any live event above and click 'Get Ticket Pass' to generate your digital entry pass.")}
                       </p>
                     </div>
                   ) : (
@@ -490,7 +516,7 @@ export default function DashboardPage() {
                 <div className="grid lg:grid-cols-2 gap-6">
                   <section className="p-6 sm:p-8 rounded-3xl bg-card border border-border-subtle">
                     <h2 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-purple-400" /> Opportunity Applications
+                      <Briefcase className="w-4 h-4 text-purple-400" /> {t("dashboard.stats.applications", "Opportunity Applications")}
                     </h2>
                     {apps.length === 0 ? (
                       <p className="text-sm text-text-secondary">
@@ -517,7 +543,7 @@ export default function DashboardPage() {
 
                   <section className="p-6 sm:p-8 rounded-3xl bg-card border border-border-subtle">
                     <h2 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" /> Hosting Status
+                      <Sparkles className="w-4 h-4 text-[var(--accent-orange)]" /> {t("dashboard.stats.hostStatus", "Hosting Status")}
                     </h2>
                     {profile?.role === "ORGANIZER" || profile?.role === "SUPER_ADMIN" ? (
                       <div className="space-y-3">
@@ -583,7 +609,7 @@ export default function DashboardPage() {
                   <form onSubmit={handleCreateTicket} className="space-y-4">
                     <div className="flex items-center gap-2 text-[var(--accent-orange)] text-xs font-bold uppercase tracking-wider">
                       <Ticket className="w-4 h-4" />
-                      <span>Claim Event Ticket</span>
+                      <span>{t("dashboard.liveEvents.registerModalTitle", "Claim Event Ticket")}</span>
                     </div>
 
                     <div>
@@ -624,7 +650,7 @@ export default function DashboardPage() {
                         onClick={() => setSelectedEventForBooking(null)}
                         className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
                       >
-                        Cancel
+                        {t("common.cancel", "Cancel")}
                       </button>
                       <button
                         type="submit"
@@ -634,12 +660,12 @@ export default function DashboardPage() {
                         {bookingLoading ? (
                           <>
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Generating Pass...</span>
+                            <span>{t("common.loading", "Generating Pass...")}</span>
                           </>
                         ) : (
                           <>
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Confirm & Claim Pass</span>
+                            <span>{t("dashboard.liveEvents.confirmPass", "Confirm & Claim Pass")}</span>
                           </>
                         )}
                       </button>
@@ -653,7 +679,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-bold text-white">Ticket Pass Confirmed!</h3>
+                      <h3 className="text-lg font-bold text-white">{t("dashboard.passes.claimedBadge", "Ticket Pass Confirmed!")}</h3>
                       <p className="text-xs text-white/60 mt-1">
                         Your pass for <span className="text-white font-semibold">{newlyCreatedPass.eventTitle}</span> is ready.
                       </p>
@@ -684,7 +710,7 @@ export default function DashboardPage() {
                       }}
                       className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
                     >
-                      View in Your Passes
+                      {t("dashboard.passes.viewPass", "View in Your Passes")}
                     </button>
                   </div>
                 )}
@@ -693,7 +719,6 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
       </main>
-      <Footer />
     </>
   );
 }

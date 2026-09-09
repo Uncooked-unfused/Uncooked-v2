@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function Footer() {
+  const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
   const [isIntersecting, setIsIntersecting] = useState(false);
   const textRef = useRef(null);
@@ -27,10 +29,10 @@ export default function Footer() {
 
   const footerLinks = {
     legal: [
-      { label: "Terms", href: "/terms" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Security", href: "/security" },
-      { label: "Cookies", href: "/cookies" },
+      { label: t("footer.terms", "Terms"), href: "/terms" },
+      { label: t("footer.privacy", "Privacy"), href: "/privacy" },
+      { label: t("footer.security", "Security"), href: "/security" },
+      { label: t("footer.cookies", "Cookies"), href: "/cookies" },
     ],
   };
 
@@ -131,7 +133,7 @@ export default function Footer() {
             ))}
           </div>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            © {currentYear} Opportia Portal. All rights reserved.
+            © {currentYear} Opportia Portal. {t("footer.allRightsReserved", "All rights reserved.")}
           </p>
         </div>
       </div>

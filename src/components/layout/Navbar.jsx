@@ -23,6 +23,7 @@ import {
   Monitor,
 } from "lucide-react";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 import NotificationBell from "@/components/layout/NotificationBell";
 
 export const AVATAR_OPTIONS = [
@@ -46,6 +47,7 @@ export default function Navbar({ forceDarkTop = false }) {
   const [settingsSubmenuOpen, setSettingsSubmenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { theme, toggleTheme } = useTheme();
+  const { t } = useLanguage();
 
   // Avatar state with persistence
   const [selectedAvatarId, setSelectedAvatarId] = useState("male");
@@ -99,17 +101,17 @@ export default function Navbar({ forceDarkTop = false }) {
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setUserDropdownOpen(false);
+        setSettingsSubmenuOpen(false);
       }
     };
-    if (userDropdownOpen) {
-      document.addEventListener("pointerdown", handleClickOutside);
-    }
-    return () => document.removeEventListener("pointerdown", handleClickOutside);
-  }, [userDropdownOpen]);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
+  // Handle scroll detection
   useEffect(() => {
     let lastScrollY = window.scrollY;
 
@@ -117,12 +119,12 @@ export default function Navbar({ forceDarkTop = false }) {
       const currentScrollY = window.scrollY;
       setScrolled(currentScrollY > 20);
 
-      if (currentScrollY > 80 && currentScrollY > lastScrollY) {
+      // Hide on scroll down, show on scroll up
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setVisible(false);
       } else {
         setVisible(true);
       }
-
       lastScrollY = currentScrollY;
     };
 
@@ -130,36 +132,18 @@ export default function Navbar({ forceDarkTop = false }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setMobileOpen((prev) => {
-      const next = !prev;
-      if (next) setVisible(true);
-      return next;
-    });
-  };
-
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
+  const toggleMobileMenu = () => setMobileOpen(!mobileOpen);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    router.push("/login");
   };
 
   const displayName =
     userProfile?.fullName ||
-    userProfile?.name ||
-    currentUser?.name ||
+    currentUser?.user_metadata?.full_name ||
     currentUser?.email?.split("@")[0] ||
-    "Campus User";
+    "Demo User";
 
   const userEmail =
     userProfile?.email ||
@@ -167,12 +151,12 @@ export default function Navbar({ forceDarkTop = false }) {
     "";
 
   const navLinks = [
-    { label: "Events", href: "/events" },
-    ...(isLoggedIn ? [{ label: "Dashboard", href: "/dashboard" }] : []),
-    { label: "Opportunities", href: "/opportunities" },
-    { label: "Host an Event", href: "/host" },
-    { label: "About", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: t("nav.events", "Events"), href: "/events" },
+    ...(isLoggedIn ? [{ label: t("nav.dashboard", "Dashboard"), href: "/dashboard" }] : []),
+    { label: t("nav.opportunities", "Opportunities"), href: "/opportunities" },
+    { label: t("nav.createEvent", "Host an Event"), href: "/host" },
+    { label: t("footer.about", "About"), href: "/about" },
+    { label: t("footer.contact", "Contact"), href: "/contact" },
   ];
 
   return (
@@ -201,11 +185,6 @@ export default function Navbar({ forceDarkTop = false }) {
             >
               OPPORTIA
             </span>
-            <span
-              className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[var(--border-subtle)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
-            >
-              β
-            </span>
           </motion.div>
         </Link>
 
@@ -213,7 +192,7 @@ export default function Navbar({ forceDarkTop = false }) {
         <div className="hidden md:flex items-center gap-0.5 lg:gap-1 absolute left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
-            const isDashboard = link.label === "Dashboard";
+            const isDashboard = link.href === "/dashboard";
             return (
               <Link
                 key={link.label}
@@ -243,7 +222,7 @@ export default function Navbar({ forceDarkTop = false }) {
             {theme === "dark" ? (
               <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-zinc-800" />
+              <Moon className="w-4 h-4 text-[var(--text-primary)]" />
             )}
           </button>
 
@@ -256,7 +235,7 @@ export default function Navbar({ forceDarkTop = false }) {
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full bg-[var(--border-subtle)] hover:bg-[var(--border-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-hover)] transition-all active:scale-95 cursor-pointer group"
+                  className="relative p-0.5 rounded-full bg-[var(--border-subtle)] hover:bg-[var(--border-hover)] border border-[var(--border-subtle)] hover:border-[var(--accent-orange)] transition-all active:scale-95 cursor-pointer group flex items-center justify-center"
                   aria-expanded={userDropdownOpen}
                   aria-label="User profile menu"
                 >
@@ -269,46 +248,44 @@ export default function Navbar({ forceDarkTop = false }) {
                       sizes="32px"
                     />
                   </div>
-                  <span className="text-xs font-semibold text-[var(--text-primary)] max-w-[110px] truncate hidden sm:inline-block">
-                    {displayName}
-                  </span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${
-                      userDropdownOpen ? "rotate-180 text-[var(--text-primary)]" : ""
-                    }`}
-                  />
                 </button>
 
                 {/* Profile Section Popover Dropdown */}
                 <AnimatePresence>
                   {userDropdownOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                      initial={{ opacity: 0, y: 6, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.96 }}
                       transition={{ duration: 0.16, ease: "easeOut" }}
-                      className="absolute right-0 top-full mt-2.5 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] shadow-2xl backdrop-blur-2xl p-4 z-50 text-[var(--text-primary)] space-y-4"
+                      className="absolute right-0 top-full mt-2 w-64 sm:w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl p-3 z-50 text-[var(--text-primary)] space-y-2.5 max-h-[calc(100vh-5rem)] overflow-y-auto glass-scrollbar"
                       style={{
-                        boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--border-subtle)",
+                        background: "var(--glass-dropdown-bg)",
+                        borderColor: "var(--glass-dropdown-border)",
+                        boxShadow: "var(--glass-dropdown-shadow)",
+                        WebkitBackdropFilter: "blur(28px) saturate(180%)",
+                        backdropFilter: "blur(28px) saturate(180%)",
+                        borderWidth: "1px",
+                        borderStyle: "solid",
                       }}
                     >
                       {/* User Header: Avatar, Name & Gmail */}
-                      <div className="flex items-center gap-3 pb-3 border-b border-[var(--border-subtle)]">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--border-subtle)] shrink-0 shadow-md">
+                      <div className="flex items-center gap-2.5 pb-2.5 border-b border-[var(--glass-inner-border)]">
+                        <div className="relative w-9 h-9 rounded-full overflow-hidden border border-white/15 dark:border-white/15 light:border-black/10 shrink-0 shadow-md ring-1 ring-white/10">
                           <Image
                             src={activeAvatar.src}
                             alt={activeAvatar.name}
                             fill
                             className="object-cover"
-                            sizes="48px"
+                            sizes="36px"
                           />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-bold text-[var(--text-primary)] truncate">
+                          <div className="text-xs font-bold text-[var(--text-primary)] truncate">
                             {displayName}
                           </div>
                           {userEmail && (
-                            <div className="text-xs text-[var(--text-secondary)] truncate font-mono mt-0.5">
+                            <div className="text-[11px] text-[var(--text-secondary)] truncate font-mono mt-0.5">
                               {userEmail}
                             </div>
                           )}
@@ -316,16 +293,16 @@ export default function Navbar({ forceDarkTop = false }) {
                       </div>
 
                       {/* 6 Curated Switcher Avatars */}
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-muted)]">
+                          <span className="text-[9px] uppercase font-bold tracking-wider text-[var(--text-muted)]">
                             Choose Avatar
                           </span>
                           <span className="text-[10px] text-amber-500 font-semibold">
                             {activeAvatar.name}
                           </span>
                         </div>
-                        <div className="grid grid-cols-6 gap-2 pt-0.5">
+                        <div className="grid grid-cols-6 gap-1.5 pt-0.5">
                           {AVATAR_OPTIONS.map((avatar) => {
                             const isSelected = avatar.id === selectedAvatarId;
                             return (
@@ -335,7 +312,7 @@ export default function Navbar({ forceDarkTop = false }) {
                                 onClick={() => handleSelectAvatar(avatar.id)}
                                 className={`relative aspect-square rounded-full overflow-hidden transition-all duration-200 cursor-pointer p-0.5 ${
                                   isSelected
-                                    ? "ring-2 ring-orange-500 scale-110 shadow-lg"
+                                    ? "ring-2 ring-orange-500 scale-110 shadow-sm"
                                     : "opacity-70 hover:opacity-100 hover:scale-105"
                                 }`}
                                 title={avatar.name}
@@ -346,7 +323,7 @@ export default function Navbar({ forceDarkTop = false }) {
                                     alt={avatar.name}
                                     fill
                                     className="object-cover"
-                                    sizes="36px"
+                                    sizes="28px"
                                   />
                                 </div>
                               </button>
@@ -355,62 +332,65 @@ export default function Navbar({ forceDarkTop = false }) {
                         </div>
                       </div>
 
-                      {/* Consolidated Actions: Console, Profile, Settings, Host, Logout */}
-                      <div className="pt-2 border-t border-[var(--border-subtle)] space-y-1">
-                        {/* 1. Student Console */}
+                      {/* Consolidated Actions: Dashboard, Profile, Settings, Host, Logout */}
+                      <div className="pt-2 border-t border-[var(--glass-inner-border)] space-y-0.5">
+                        {/* 1. Dashboard */}
                         <Link
                           href="/dashboard"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                         >
-                          <LayoutDashboard className="w-4 h-4 text-[var(--accent-orange)]" />
-                          <span>Student Console</span>
+                          <LayoutDashboard className="w-3.5 h-3.5 text-[var(--accent-orange)] shrink-0" />
+                          <span>{t("nav.dashboard", "Dashboard")}</span>
                         </Link>
 
                         {/* 2. View Profile */}
                         <Link
                           href="/profile"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                         >
-                          <User className="w-4 h-4 text-purple-500" />
-                          <span>View Profile</span>
+                          <User className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                          <span>{t("nav.viewProfile", "View Profile")}</span>
                         </Link>
 
                         {/* 3. Settings with Dropdown Options */}
-                        <div className="rounded-xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border-subtle)]">
+                        <div 
+                          className="rounded-lg overflow-hidden border border-[var(--glass-inner-border)]"
+                          style={{ background: "var(--glass-inner-bg)" }}
+                        >
                           <button
                             type="button"
                             onClick={() => setSettingsSubmenuOpen(!settingsSubmenuOpen)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors cursor-pointer"
+                            className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors cursor-pointer"
                           >
-                            <div className="flex items-center gap-3">
-                              <Settings className="w-4 h-4 text-cyan-500" />
-                              <span>Settings</span>
+                            <div className="flex items-center gap-2.5">
+                              <Settings className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                              <span>{t("nav.settings", "Settings")}</span>
                             </div>
                             <ChevronDown
-                              className={`w-3.5 h-3.5 text-[var(--text-secondary)] transition-transform ${
+                              className={`w-3 h-3 text-[var(--text-secondary)] transition-transform duration-200 ${
                                 settingsSubmenuOpen ? "rotate-180 text-[var(--text-primary)]" : ""
                               }`}
                             />
                           </button>
                           {settingsSubmenuOpen && (
-                            <div className="px-2 pb-2 pt-1 space-y-1 border-t border-[var(--border-subtle)]">
+                            <div className="px-1.5 pb-1.5 pt-0.5 space-y-0.5 border-t border-[var(--glass-inner-border)]">
                               <Link
                                 href="/settings"
                                 onClick={() => setUserDropdownOpen(false)}
-                                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                                className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                               >
-                                <Settings className="w-3 h-3 text-[var(--text-muted)]" />
-                                <span>General Settings</span>
+                                <Settings className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
+                                <span>{t("nav.generalSettings", "General Settings")}</span>
                               </Link>
                               <Link
                                 href="/settings#devices"
                                 onClick={() => setUserDropdownOpen(false)}
-                                className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                                className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                               >
-                                <Monitor className="w-3 h-3 text-emerald-500" />
-                                <span>Manage Desktops & Sessions</span>
+                                <Monitor className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <span>{t("nav.manageDesktops", "Manage Desktops & Sessions")}</span>
                               </Link>
                             </div>
                           )}
@@ -420,18 +400,18 @@ export default function Navbar({ forceDarkTop = false }) {
                         <Link
                           href="/create"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                         >
-                          <CalendarPlus className="w-4 h-4 text-amber-500" />
-                          <span>Create Event</span>
+                          <CalendarPlus className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                          <span>{t("nav.createEvent", "Create Event")}</span>
                         </Link>
                         <Link
                           href="/host/apply"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-colors"
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--glass-item-hover)] transition-colors"
                         >
-                          <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                          <span>Host Application</span>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span>{t("nav.hostApply", "Host Application")}</span>
                         </Link>
 
                         {/* 5. Logout */}
@@ -441,10 +421,10 @@ export default function Navbar({ forceDarkTop = false }) {
                             setUserDropdownOpen(false);
                             handleLogout();
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
                         >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
+                          <LogOut className="w-3.5 h-3.5 shrink-0" />
+                          <span>{t("nav.signOut", "Sign Out")}</span>
                         </button>
                       </div>
                     </motion.div>
@@ -460,10 +440,10 @@ export default function Navbar({ forceDarkTop = false }) {
                 href="/login"
                 className="px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               >
-                Login
+                {t("nav.login", "Login")}
               </Link>
               <Link href="/signup" className="btn-primary text-sm">
-                Get Started
+                {t("nav.getStarted", "Get Started")}
               </Link>
             </>
           )}
@@ -477,7 +457,7 @@ export default function Navbar({ forceDarkTop = false }) {
             className="p-2 min-w-[38px] min-h-[38px] rounded-full hover:bg-[var(--border-subtle)] transition-colors border border-[var(--border-subtle)] flex items-center justify-center cursor-pointer text-[var(--text-primary)]"
             aria-label="Toggle Theme"
           >
-            {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-800" />}
+            {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-[var(--text-primary)]" />}
           </button>
           <button
             onClick={toggleMobileMenu}
@@ -528,9 +508,16 @@ export default function Navbar({ forceDarkTop = false }) {
                 className="flex flex-col gap-4 mt-4 w-full max-w-xs"
               >
                 {isLoggedIn ? (
-                  <div className="bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-2xl p-4 text-[var(--text-primary)] space-y-4 shadow-xl">
+                  <div 
+                    className="border rounded-2xl p-3.5 text-[var(--text-primary)] space-y-3.5 shadow-xl backdrop-blur-2xl"
+                    style={{
+                      background: "var(--glass-dropdown-bg)",
+                      borderColor: "var(--glass-dropdown-border)",
+                      boxShadow: "var(--glass-dropdown-shadow)",
+                    }}
+                  >
                     {/* User Header */}
-                    <div className="flex items-center gap-3 pb-3 border-b border-[var(--border-subtle)]">
+                    <div className="flex items-center gap-2.5 pb-2.5 border-b border-[var(--glass-inner-border)]">
                       <div className="relative w-11 h-11 rounded-full overflow-hidden border border-[var(--border-subtle)] shrink-0">
                         <Image
                           src={activeAvatar.src}
