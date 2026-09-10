@@ -1,3 +1,9 @@
+import bundleAnalyzer from "@next/bundle-analyzer";
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
 function getSecurityHeaders() {
   const isDev = process.env.NODE_ENV === "development";
 
@@ -72,8 +78,18 @@ const nextConfig = {
         source: "/(.*)",
         headers: getSecurityHeaders(),
       },
+      // A — CDN-friendly caching for hashed Next build assets (Cloudflare / Vercel edge)
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ];
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
