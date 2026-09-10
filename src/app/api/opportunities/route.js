@@ -39,7 +39,13 @@ export async function GET(req) {
       take: 50,
     });
 
-    return jsonOk({ opportunities: opportunities.map(publicOpportunity), count: opportunities.length });
+    return jsonOk(
+      { opportunities: opportunities.map(publicOpportunity), count: opportunities.length },
+      200,
+      {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+      }
+    );
   } catch (error) {
     return safeError(error, "Unable to load opportunities");
   }
