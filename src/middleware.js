@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { getClientIp, fingerprintIp } from "@/server/http/clientIp";
 import { rateLimitAsync, rateLimitHeaders } from "@/server/http/rateLimit";
 import { safeInternalPath } from "@/lib/safeRedirect";
+import { hardenSupabaseCookieOptions } from "@/server/config/authCookies";
 
 const ADMIN_PREFIXES = ["/admin", "/api/v2/admin"];
 const AUTH_REQUIRED_PAGES = ["/dashboard", "/profile", "/settings", "/host/apply", "/create", "/host/scanner"];
@@ -112,7 +113,9 @@ export async function middleware(request) {
         const nextResponse = NextResponse.next({ request });
         response.headers.forEach((val, key) => nextResponse.headers.set(key, val));
         response = nextResponse;
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, hardenSupabaseCookieOptions(options))
+        );
       },
     },
   });
