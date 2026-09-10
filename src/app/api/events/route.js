@@ -50,10 +50,17 @@ export async function GET(req) {
       },
     });
 
-    return jsonOk({
-      events: events.map((event) => publicEvent(event, { registrationCount: event._count.registrations })),
-      count: events.length,
-    });
+    return jsonOk(
+      {
+        events: events.map((event) => publicEvent(event, { registrationCount: event._count.registrations })),
+        count: events.length,
+      },
+      200,
+      {
+        // Short public cache — faster repeat loads without going stale for long.
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+      }
+    );
   } catch (error) {
     return safeError(error, "Unable to load events");
   }
