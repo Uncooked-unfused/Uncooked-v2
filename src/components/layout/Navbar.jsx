@@ -153,11 +153,11 @@ export default function Navbar({ forceDarkTop = false }) {
   const navLinks = [
     { label: t("nav.events", "Events"), href: "/events" },
     ...(isLoggedIn ? [{ label: t("nav.dashboard", "Dashboard"), href: "/dashboard" }] : []),
-    ...(isLoggedIn ? [{ label: t("nav.opportunities", "Opportunities"), href: "/opportunities" }] : []),
-    { label: t("nav.createEvent", "Host an Event"), href: "/host" },
+    { label: t("nav.opportunities", "Opportunities"), href: "/opportunities" },
+    { label: t("nav.createEvent", "Create Event"), href: "/host" },
     { label: t("footer.about", "About"), href: "/about" },
     { label: "Help", href: "/help" },
-    ...(isLoggedIn ? [{ label: t("footer.contact", "Contact"), href: "/contact" }] : []),
+    { label: t("footer.contact", "Contact"), href: "/contact" },
   ];
 
   return (
