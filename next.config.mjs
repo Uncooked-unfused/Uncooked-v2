@@ -1,9 +1,3 @@
-import bundleAnalyzer from "@next/bundle-analyzer";
-
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
-
 function getSecurityHeaders() {
   const isDev = process.env.NODE_ENV === "development";
 
@@ -39,6 +33,20 @@ function getSecurityHeaders() {
       ].join("; "),
     },
   ];
+}
+
+/** Optional @next/bundle-analyzer — only loaded when ANALYZE=true (via npx). */
+async function withOptionalAnalyzer(config) {
+  if (process.env.ANALYZE !== "true") return config;
+  try {
+    const { default: bundleAnalyzer } = await import("@next/bundle-analyzer");
+    return bundleAnalyzer({ enabled: true })(config);
+  } catch {
+    console.warn(
+      "[next.config] ANALYZE=true but @next/bundle-analyzer is not installed. Use: npm run analyze"
+    );
+    return config;
+  }
 }
 
 const nextConfig = {
@@ -92,4 +100,4 @@ const nextConfig = {
   },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default await withOptionalAnalyzer(nextConfig);
