@@ -85,7 +85,7 @@ export default function TicketPassCard({ title, status, location, dateLabel, pay
 
       {open && payload && (
         <div
-          className="fixed inset-0 z-[80] bg-white text-zinc-900 flex flex-col items-center justify-center p-6"
+          className="fixed inset-0 z-[80] bg-white text-zinc-900 flex flex-col items-center justify-center p-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
           role="dialog"
           aria-modal="true"
           aria-label="Fullscreen ticket pass"
@@ -93,7 +93,7 @@ export default function TicketPassCard({ title, status, location, dateLabel, pay
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-zinc-100 hover:bg-zinc-200"
+            className="absolute top-[max(0.75rem,env(safe-area-inset-top))] right-3 min-w-[44px] min-h-[44px] p-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center"
             aria-label="Close fullscreen pass"
           >
             <X className="w-5 h-5" />
@@ -101,14 +101,15 @@ export default function TicketPassCard({ title, status, location, dateLabel, pay
           <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">
             {status || "Confirmed"} · Show at door
           </p>
-          <h3 className="text-lg font-bold text-center max-w-sm mb-4">{title}</h3>
-          <div className="p-4 bg-white rounded-3xl border border-zinc-200 shadow-xl">
-            <QRCodeSVG value={payload} size={240} level="M" includeMargin />
+          <h3 className="text-base sm:text-lg font-bold text-center max-w-sm mb-4 px-2">{title}</h3>
+          <div className="p-3 sm:p-4 bg-white rounded-3xl border border-zinc-200 shadow-xl">
+            {/* Fixed QR size keeps decode reliable on all phones without huge canvases */}
+            <QRCodeSVG value={payload} size={220} level="M" includeMargin />
           </div>
           <p className="text-sm text-zinc-600 mt-4">{dateLabel}</p>
-          <p className="text-sm text-zinc-600 truncate max-w-sm">{location}</p>
+          <p className="text-sm text-zinc-600 truncate max-w-sm px-2">{location}</p>
           <p className="text-xs font-mono text-orange-600 mt-3">PASS {passId}</p>
-          <p className="text-[11px] text-zinc-500 mt-6 text-center max-w-xs">
+          <p className="text-[11px] text-zinc-500 mt-6 text-center max-w-xs px-2">
             Raise brightness and hold steady for the host scanner.
           </p>
         </div>

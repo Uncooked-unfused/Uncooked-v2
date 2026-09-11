@@ -2,25 +2,36 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, CameraOff, Loader2 } from "lucide-react";
+import { getScanProfile } from "@/lib/device/scanCapability";
 
 /**
- * Live QR reader for door check-in.
- * Prefers BarcodeDetector; falls back to jsqr + canvas.
+ * Live QR reader tuned for low-end and high-end phones.
+ * - Native BarcodeDetector when available (cheapest)
+ * - jsQR fallback with downscaled frames + frame skipping
+ * - Pauses when tab hidden; releases camera on stop
  */
-export default function QrCameraScanner({ onScan, active = true, cooldownMs = 2500 }) {
+export default function QrCameraScanner({ onScan, active = true, cooldownMs }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const rafRef = useRef(0);
+  const timerRef = useRef(0);
+  const frameCountRef = useRef(0);
   const lastHitRef = useRef({ value: "", at: 0 });
+  const profileRef = useRef(null);
   const [error, setError] = useState("");
   const [starting, setStarting] = useState(false);
   const [running, setRunning] = useState(false);
+  const [tier, setTier] = useState("mid");
 
   const stop = useCallback(() => {
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
+    }
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = 0;
     }
     const stream = streamRef.current;
     if (stream) {
@@ -38,7 +49,11 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
       const value = String(raw || "").trim();
       if (!value) return;
       const now = Date.now();
-      if (value === lastHitRef.current.value && now - lastHitRef.current.at < cooldownMs) {
+      const cool =
+        typeof cooldownMs === "number"
+          ? cooldownMs
+          : profileRef.current?.cooldownMs || 2500;
+      if (value === lastHitRef.current.value && now - lastHitRef.current.at < cool) {
         return;
       }
       lastHitRef.current = { value, at: now };
@@ -49,45 +64,65 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
 
   const loopWithDetector = useCallback(
     (detector) => {
+      const interval = profileRef.current?.detectorIntervalMs || 140;
       const tick = async () => {
-        const video = videoRef.current;
-        if (!video || video.readyState < 2) {
-          rafRef.current = requestAnimationFrame(tick);
+        if (typeof document !== "undefined" && document.hidden) {
+          timerRef.current = setTimeout(tick, interval * 2);
           return;
         }
-        try {
-          const codes = await detector.detect(video);
-          if (codes?.[0]?.rawValue) emit(codes[0].rawValue);
-        } catch {
-          /* transient frame errors */
+        const video = videoRef.current;
+        if (video && video.readyState >= 2) {
+          try {
+            const codes = await detector.detect(video);
+            if (codes?.[0]?.rawValue) emit(codes[0].rawValue);
+          } catch {
+            /* transient */
+          }
         }
-        rafRef.current = requestAnimationFrame(tick);
+        timerRef.current = setTimeout(tick, interval);
       };
-      rafRef.current = requestAnimationFrame(tick);
+      timerRef.current = setTimeout(tick, interval);
     },
     [emit]
   );
 
   const loopWithJsQR = useCallback(async () => {
     const jsQR = (await import("jsqr")).default;
+    const maxEdge = profileRef.current?.decodeMaxEdge || 560;
+    const frameSkip = profileRef.current?.frameSkip || 2;
+
     const tick = () => {
+      if (typeof document !== "undefined" && document.hidden) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      frameCountRef.current += 1;
       const video = videoRef.current;
       const canvas = canvasRef.current;
       if (!video || !canvas || video.readyState < 2) {
         rafRef.current = requestAnimationFrame(tick);
         return;
       }
-      const w = video.videoWidth;
-      const h = video.videoHeight;
-      if (w && h) {
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d", { willReadFrequently: true });
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, w, h);
-          const image = ctx.getImageData(0, 0, w, h);
-          const code = jsQR(image.data, w, h, { inversionAttempts: "dontInvert" });
-          if (code?.data) emit(code.data);
+
+      if (frameCountRef.current % (frameSkip + 1) === 0) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        if (vw && vh) {
+          const scale = Math.min(1, maxEdge / Math.max(vw, vh));
+          const w = Math.max(1, Math.round(vw * scale));
+          const h = Math.max(1, Math.round(vh * scale));
+          if (canvas.width !== w) canvas.width = w;
+          if (canvas.height !== h) canvas.height = h;
+          const ctx = canvas.getContext("2d", {
+            willReadFrequently: true,
+            alpha: false,
+          });
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, w, h);
+            const image = ctx.getImageData(0, 0, w, h);
+            const code = jsQR(image.data, w, h, { inversionAttempts: "dontInvert" });
+            if (code?.data) emit(code.data);
+          }
         }
       }
       rafRef.current = requestAnimationFrame(tick);
@@ -101,21 +136,33 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
       setError("Camera is not available in this browser. Use paste fallback.");
       return;
     }
+    const profile = getScanProfile(navigator);
+    profileRef.current = profile;
+    setTier(profile.tier);
+
     setStarting(true);
     setError("");
     stop();
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: profile.video,
+        });
+      } catch {
+        // Ultra-fallback for stubborn / old WebViews
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: "environment" },
+        });
+      }
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) throw new Error("Video element missing");
+      video.setAttribute("playsinline", "true");
+      video.setAttribute("webkit-playsinline", "true");
+      video.muted = true;
       video.srcObject = stream;
       await video.play();
       setRunning(true);
@@ -127,7 +174,7 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
           setStarting(false);
           return;
         } catch {
-          /* fall through to jsqr */
+          /* jsQR fallback */
         }
       }
       await loopWithJsQR();
@@ -152,19 +199,31 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
     return () => stop();
   }, [active, start, stop]);
 
+  useEffect(() => {
+    const onVis = () => {
+      // Restart decode loops cheaply when returning to tab
+      if (!document.hidden && active && running && !rafRef.current && !timerRef.current) {
+        start();
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [active, running, start]);
+
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-black aspect-[4/3]">
+      <div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-black aspect-[4/3] max-h-[55vh]">
         <video
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           playsInline
           muted
           autoPlay
+          disablePictureInPicture
         />
-        <canvas ref={canvasRef} className="hidden" />
+        <canvas ref={canvasRef} className="hidden" aria-hidden />
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-[58%] w-[58%] rounded-2xl border-2 border-[var(--accent-orange)]/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
+          <div className="h-[56%] w-[56%] max-w-[240px] max-h-[240px] rounded-2xl border-2 border-[var(--accent-orange)]/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]" />
         </div>
         {!running && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 text-white text-sm px-4 text-center">
@@ -175,7 +234,7 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
               </>
             ) : (
               <>
-                <CameraOff className="w-6 h-6 text-text-muted" />
+                <CameraOff className="w-6 h-6 text-zinc-400" />
                 Camera idle
               </>
             )}
@@ -187,7 +246,7 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
         <button
           type="button"
           onClick={() => (running ? stop() : start())}
-          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold border border-border-subtle bg-card hover:bg-card-hover text-text-primary"
+          className="inline-flex items-center gap-2 min-h-[40px] rounded-full px-4 py-2 text-xs font-semibold border border-border-subtle bg-card hover:bg-card-hover text-text-primary"
         >
           {running ? (
             <>
@@ -200,7 +259,9 @@ export default function QrCameraScanner({ onScan, active = true, cooldownMs = 25
           )}
         </button>
         <p className="text-[11px] text-text-muted">
-          Point at the student QR. Duplicate scans are ignored for a few seconds.
+          Mode: <span className="font-semibold text-text-secondary">{tier}</span>
+          {" · "}
+          Point at the student QR. Duplicates are ignored briefly.
         </p>
       </div>
 

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Loader2,
   QrCode,
@@ -219,11 +218,8 @@ export default function HostScannerPage() {
             </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl bg-card border border-border-subtle p-6 sm:p-8 space-y-5"
-          >
+          {/* No Framer on this page — keep door phones light */}
+          <div className="rounded-3xl bg-card border border-border-subtle p-5 sm:p-8 space-y-5">
             <div className="flex items-center gap-2 text-xs text-text-secondary">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Host or admin only. Invalid or forged passes are rejected.
@@ -300,7 +296,7 @@ export default function HostScannerPage() {
                 )}
               </>
             )}
-          </motion.div>
+          </div>
         </div>
       </main>
       <Footer />
