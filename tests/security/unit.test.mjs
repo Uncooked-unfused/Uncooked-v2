@@ -73,6 +73,13 @@ test("publicEventListItem omits full description/schedule/prizePool", () => {
   assert.equal(view.spotsLeft, 9);
 });
 
+test("publicBannerUrl allows relative public paths but blocks protocol-relative", async () => {
+  const { publicBannerUrl } = await import("../../src/server/services/eventsPublic.js");
+  assert.equal(publicBannerUrl("/events/poster.jpg"), "/events/poster.jpg");
+  assert.equal(publicBannerUrl("//evil.example/x.jpg"), null);
+  assert.equal(publicBannerUrl("https://images.unsplash.com/a.jpg"), "https://images.unsplash.com/a.jpg");
+});
+
 test("publicEventListItem strips data: banners; keeps https", () => {
   const dataBanner = `data:image/jpeg;base64,${"A".repeat(5000)}`;
   const slim = publicEventListItem({

@@ -195,8 +195,19 @@ export default function DashboardPage() {
           ? payload.data.events
           : [];
         if (rows.length > 0) {
+          const now = Date.now();
+          const sorted = [...rows].sort((a, b) => {
+            const timeA = a.date ? new Date(a.date).getTime() : 0;
+            const timeB = b.date ? new Date(b.date).getTime() : 0;
+            const isAFuture = timeA >= now;
+            const isBFuture = timeB >= now;
+            if (isAFuture && !isBFuture) return -1;
+            if (!isAFuture && isBFuture) return 1;
+            return timeA - timeB;
+          });
+
           setLiveEvents(
-            rows.map((row) => ({
+            sorted.map((row) => ({
               id: row.id,
               title: row.title,
               category: row.category || row.type || "Events",
@@ -222,7 +233,6 @@ export default function DashboardPage() {
   const hostedEvents = profile?.eventsCreated || [];
   const isHost =
     String(profile?.role || session?.user?.role || "").toUpperCase() === "ORGANIZER" ||
-    String(profile?.role || session?.user?.role || "").toUpperCase() === "SUPER_ADMIN";
     String(profile?.role || session?.user?.role || "").toUpperCase() === "SUPER_ADMIN" ||
     hostedEvents.length > 0;
   const totalHostedAttendees = hostedEvents.reduce(
@@ -576,7 +586,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {liveEvents.slice(0, 3).map((ev) => {
+                  {liveEvents.slice(0, 6).map((ev) => {
                     const alreadyClaimed = isEventRegistered(ev.id);
                     return (
                       <div
@@ -686,8 +696,9 @@ export default function DashboardPage() {
                   ) : (
                     <div className="grid md:grid-cols-2 gap-4">
                       {registrations.map((reg) => (
-                        <Link key={reg.id} href={`/events/${reg.event?.id || ""}`} className="block">
+                        <div key={reg.id} className="block">
                           <TicketPassCard
+                            eventId={reg.event?.id || reg.eventId}
                             title={reg.event?.title || "Event"}
                             status={reg.status}
                             location={reg.event?.location}
@@ -695,7 +706,7 @@ export default function DashboardPage() {
                             payload={reg.ticketPass?.qrPayload || null}
                             passId={reg.id}
                           />
-                        </Link>
+                        </div>
                       ))}
                     </div>
                   )}

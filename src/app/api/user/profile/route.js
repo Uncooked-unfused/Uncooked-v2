@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { jsonError, jsonOk, readJson, safeError } from "@/server/http/envelope";
 import { enforceMutationGuards, requireUser } from "@/server/http/guards";
+import { signTicketPayload } from "@/server/tickets/hmac";
 
 function safeUser(user) {
   if (!user) return null;
@@ -12,6 +13,7 @@ function safeUser(user) {
     lockedUntil,
     disabledAt,
     disabledReason,
+    registrations,
     ...rest
   } = user;
   void passwordHash;
@@ -21,7 +23,39 @@ function safeUser(user) {
   void lockedUntil;
   void disabledAt;
   void disabledReason;
-  return rest;
+
+  const safeRegistrations = Array.isArray(registrations)
+    ? registrations.map((reg) => {
+        let sig = "";
+        try {
+          sig = signTicketPayload({
+            registrationId: reg.id,
+            eventId: reg.eventId,
+            userId: user.id,
+          });
+        } catch {}
+        return {
+          ...reg,
+          ticketPass: {
+            id: reg.id,
+            eventId: reg.eventId,
+            qrPayload: sig
+              ? JSON.stringify({
+                  regId: reg.id,
+                  eventId: reg.eventId,
+                  userId: user.id,
+                  sig,
+                })
+              : null,
+          },
+        };
+      })
+    : [];
+
+  return {
+    ...rest,
+    registrations: safeRegistrations,
+  };
 }
 
 export async function GET() {
