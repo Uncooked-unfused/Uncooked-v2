@@ -34,7 +34,7 @@ const RULES = [
       /\b(pass|ticket|rsvp|register|qr|check[- ]?in|checkin)\b/.test(t) ||
       t.includes("how do i get a pass"),
     reply:
-      "Sign in, open an event at /events/[id], then register. Your signed pass (HMAC QR) appears on that page and in /dashboard for you only. Door scanning is shipping next. Today the pass proves a real registration.",
+      "Sign in, open an event at /events/[id], then register. Your signed pass (HMAC QR) appears on that page and in /dashboard. Event hosts check guests in at /host/scanner/[eventId] with the camera (or paste fallback).",
   },
   {
     test: (t) =>

@@ -136,9 +136,10 @@ export async function POST(req, { params }) {
       return jsonError("Event not found", 404, "NOT_FOUND");
     }
 
+    // Align with event page isHost: creator or SUPER_ADMIN (not role-only).
     const allowed =
       isSuperAdmin(auth.user) ||
-      (String(auth.user.role).toUpperCase() === "ORGANIZER" && event.createdById === auth.user.id);
+      (event.createdById && event.createdById === auth.user.id);
     if (!allowed) {
       return jsonError("Only the event host or an admin can check guests in.", 403, "FORBIDDEN");
     }

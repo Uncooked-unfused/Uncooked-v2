@@ -6,7 +6,8 @@ function getSecurityHeaders() {
     { key: "X-Frame-Options", value: "DENY" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     { key: "X-DNS-Prefetch-Control", value: "off" },
-    { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+    // camera=(self) required for host door scanner; mic/geo/payment stay off.
+    { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=()" },
     { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
     // Prefer CORP over reflecting Access-Control-Allow-Origin: * (Vercel default on some assets).
     { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
@@ -27,6 +28,7 @@ function getSecurityHeaders() {
         "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://*.supabase.co https://cmseducation.org https://*.cmseducation.org",
         "font-src 'self' data:",
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+        "media-src 'self' blob:",
         "worker-src 'self' blob:",
         "frame-src 'none'",
         "frame-ancestors 'none'",
