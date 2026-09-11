@@ -194,12 +194,25 @@ export default function EventsPage() {
 
   // Filter logic
   const filteredEvents = events.filter((item) => {
-    const matchesCategory = selectedCategory === "All" || item.category.toLowerCase() === selectedCategory.toLowerCase();
+    const itemCat = (item.category || "").toLowerCase();
+    const selCat = selectedCategory.toLowerCase();
+    const matchesCategory =
+      selectedCategory === "All" ||
+      itemCat === selCat ||
+      itemCat.includes(selCat) ||
+      selCat.includes(itemCat) ||
+      (selCat.includes("hackathon") && itemCat.includes("hackathon")) ||
+      (selCat.includes("cultural") && itemCat.includes("cultural")) ||
+      (selCat.includes("workshop") && itemCat.includes("workshop")) ||
+      (selCat.includes("sport") && itemCat.includes("sport")) ||
+      (selCat.includes("social") && itemCat.includes("social"));
+
     const query = searchQuery.toLowerCase();
     const matchesSearch = 
       item.title.toLowerCase().includes(query) ||
       item.host.toLowerCase().includes(query) ||
-      item.location.toLowerCase().includes(query);
+      item.location.toLowerCase().includes(query) ||
+      itemCat.includes(query);
 
     return matchesCategory && matchesSearch;
   });

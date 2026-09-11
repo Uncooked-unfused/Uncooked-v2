@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Maximize2, X } from "lucide-react";
+import Link from "next/link";
+import { Maximize2, X, ExternalLink } from "lucide-react";
 import GoogleMapsButton from "@/components/ui/GoogleMapsButton";
 
 const QRCodeSVG = dynamic(
@@ -13,7 +14,7 @@ const QRCodeSVG = dynamic(
   }
 );
 
-export default function TicketPassCard({ title, status, location, dateLabel, payload, passId }) {
+export default function TicketPassCard({ title, status, location, dateLabel, payload, passId, eventId }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -55,7 +56,18 @@ export default function TicketPassCard({ title, status, location, dateLabel, pay
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">
             {status || "Confirmed"}
           </p>
-          <h4 className="text-sm font-bold text-text-primary truncate">{title}</h4>
+          {eventId ? (
+            <Link
+              href={`/events/${encodeURIComponent(eventId)}`}
+              className="hover:text-[var(--accent-orange)] transition-colors inline-block max-w-full"
+            >
+              <h4 className="text-sm font-bold text-text-primary hover:text-[var(--accent-orange)] transition-colors truncate">
+                {title}
+              </h4>
+            </Link>
+          ) : (
+            <h4 className="text-sm font-bold text-text-primary truncate">{title}</h4>
+          )}
           <p className="text-[11px] text-text-secondary mt-1">{dateLabel}</p>
           <p className="text-[11px] text-text-secondary truncate">{location}</p>
           {location && (
@@ -71,15 +83,25 @@ export default function TicketPassCard({ title, status, location, dateLabel, pay
           <p className="text-[10px] font-mono text-[var(--accent-orange)] mt-1.5 truncate">
             PASS {passId}
           </p>
-          {payload && (
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="mt-2 text-[11px] font-semibold text-[var(--accent-orange)] hover:underline"
-            >
-              Fullscreen for door scan
-            </button>
-          )}
+          <div className="mt-2.5 pt-2 border-t border-border-subtle flex items-center justify-between gap-2 flex-wrap">
+            {payload && (
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="text-[11px] font-semibold text-[var(--accent-orange)] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Maximize2 className="w-3 h-3" /> Fullscreen pass
+              </button>
+            )}
+            {eventId && (
+              <Link
+                href={`/events/${encodeURIComponent(eventId)}`}
+                className="text-[11px] font-semibold text-text-secondary hover:text-text-primary hover:underline ml-auto flex items-center gap-0.5"
+              >
+                <span>View Event</span> &rarr;
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

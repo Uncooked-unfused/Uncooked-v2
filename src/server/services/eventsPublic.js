@@ -10,6 +10,7 @@ export function publicBannerUrl(url, { allowData = false } = {}) {
   const trimmed = url.trim();
   if (!trimmed) return null;
   if (/^https?:\/\//i.test(trimmed)) return trimmed.slice(0, 2048);
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.includes("\\")) return trimmed.slice(0, 2048);
   if (allowData && /^data:image\//i.test(trimmed)) return trimmed;
   return null;
 }
