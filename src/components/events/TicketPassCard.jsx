@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Maximize2, X, ExternalLink } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import GoogleMapsButton from "@/components/ui/GoogleMapsButton";
 
 const QRCodeSVG = dynamic(
