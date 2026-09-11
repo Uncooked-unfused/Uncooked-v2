@@ -192,23 +192,26 @@ export default function EventsPage() {
       .catch(() => {});
   }, []);
 
-  // Filter logic
+  // Filter logic — require non-empty item category before fuzzy includes
+  // ("".includes is always true in JS and would leak uncategorized events into every tab)
   const filteredEvents = events.filter((item) => {
-    const itemCat = (item.category || "").toLowerCase();
-    const selCat = selectedCategory.toLowerCase();
+    const itemCat = (item.category || "").toLowerCase().trim();
+    const selCat = selectedCategory.toLowerCase().trim();
     const matchesCategory =
       selectedCategory === "All" ||
-      itemCat === selCat ||
-      itemCat.includes(selCat) ||
-      selCat.includes(itemCat) ||
-      (selCat.includes("hackathon") && itemCat.includes("hackathon")) ||
-      (selCat.includes("cultural") && itemCat.includes("cultural")) ||
-      (selCat.includes("workshop") && itemCat.includes("workshop")) ||
-      (selCat.includes("sport") && itemCat.includes("sport")) ||
-      (selCat.includes("social") && itemCat.includes("social"));
+      (itemCat.length > 0 &&
+        (itemCat === selCat ||
+          itemCat.includes(selCat) ||
+          selCat.includes(itemCat) ||
+          (selCat.includes("hackathon") && itemCat.includes("hackathon")) ||
+          (selCat.includes("cultural") && itemCat.includes("cultural")) ||
+          (selCat.includes("workshop") && itemCat.includes("workshop")) ||
+          (selCat.includes("sport") && itemCat.includes("sport")) ||
+          (selCat.includes("social") && itemCat.includes("social"))));
 
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
+      !query ||
       item.title.toLowerCase().includes(query) ||
       item.host.toLowerCase().includes(query) ||
       item.location.toLowerCase().includes(query) ||
