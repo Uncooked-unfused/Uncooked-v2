@@ -87,7 +87,7 @@ const FAQS = [
   },
   {
     q: "How does QR check-in work?",
-    a: "Tickets are HMAC-signed on the server and contain a unique QR code. Event hosts scan attendees using the in-product scanner at /host/scanner. Each code can only be scanned once to prevent duplicate entry.",
+    a: "After you register, your phone shows an HMAC-signed QR pass. The event host opens /host/scanner for that event, points their camera at your QR, and the server verifies the signature then marks you checked in. Each pass checks in once; paste JSON is available as a fallback if the camera is unavailable.",
   },
   {
     q: "Is there a fee to host free events?",
